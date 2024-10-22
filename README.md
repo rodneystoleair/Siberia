@@ -35,6 +35,10 @@ Two options:
 
 2. Uncomment a "setwd(..." line in 01_data_loading.R, add your path and compile scripts one by one
 
+## How to cite:
+
+WIP
+
 ## System requirements:
 
 This project was run on R version 4.3.3 (2024-02-29)
