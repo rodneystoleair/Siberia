@@ -35,7 +35,7 @@ plots = function(dataset, method_type, param_name, settings){
     ylab('Fitted') +
     theme_classic()
   ggsave(paste0(parameters_types[i], '_', method, '_cv1.png'),
-         path = 'plots/',
+         path = paste0('plots/', method, '/'),
          width = 1600,
          height = 1200,
          units = 'px')
@@ -64,7 +64,7 @@ plots = function(dataset, method_type, param_name, settings){
     theme_classic()
   ggsave(paste0(parameters_types[i], '_', method,
                 '_cv2.png'),
-         path = 'plots/',
+         path = paste0('plots/', method, '/'),
          width = 1600,
          height = 1200,
          units = 'px')
@@ -172,7 +172,7 @@ screeplots = function(dataset, method_name, param_name){
   
   ggsave(paste0(parameters_types[i], '_', method,
                 '_screeplot1.png'),
-         path = 'plots/',
+         path = paste0('plots/', method, '/'),
          width = 1600,
          height = 1200,
          units = 'px')
@@ -203,7 +203,7 @@ screeplots = function(dataset, method_name, param_name){
   
   ggsave(paste0(parameters_types[i], '_', method,
                 '_screeplot2.png'),
-         path = 'plots/',
+         path = paste0('plots/', method, '/'),
          width = 1600,
          height = 1200,
          units = 'px')
