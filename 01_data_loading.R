@@ -5,6 +5,9 @@
 ## Provided scripts are written to perform reconstructions for multiple
 ## cores and environmental parameters.
 
+# 0. Starting: if you're not using RStudio project
+# setwd('.../Siberia reconstruction/')
+
 # 1. Dependencies ----
 # Packages loading
 library('readxl')
