@@ -12,7 +12,6 @@
 # Packages loading
 library('readxl')
 library('writexl')
-library('flextable')
 library('neotoma2')
 library('tidyverse')
 

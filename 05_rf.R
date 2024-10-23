@@ -168,7 +168,7 @@ for (i in 1:length(parameters_types)){
   )
   
   # write summary
-  summary_rf[i] = list(
+  summary_rf[[i]] = list(
     parameter = paste0(
       'ntree = ',
       best_ntree,
@@ -177,10 +177,10 @@ for (i in 1:length(parameters_types)){
       ', maxnodes = ',
       best_maxnodes
     ),
-    rmsep = round(rmsep_rf, 2),
-    r2 = round(r2_rf, 2),
-    max.bias = NA,
-    p.value = sig_rf$sig
+    rmsep = rmsep_rf,
+    r2 = r2_rf,
+    max.bias = NULL,
+    p.value = as.numeric(sig_rf$sig)
   )
   
   # Scatter plots
@@ -208,7 +208,7 @@ for (i in 1:length(parameters_types)){
     paste0('Best maxnodes = ', best_maxnodes),
     varImp(func_rf),
     paste0('R2 = ', r2_rf),
-    paste0('RMSEP = ', r2_rf)
+    paste0('RMSEP = ', rmsep_rf)
   ) |>
     print()
 }

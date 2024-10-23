@@ -11,6 +11,7 @@
 # 1. Dependencies ----
 # Packages loading
 library('ggcorrplot')
+library('flextable')
 library('tidyverse')
 library('tidypaleo')
 
