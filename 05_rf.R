@@ -125,10 +125,8 @@ for (i in 1:length(parameters_types)){
   best_ntree = as.numeric(substr(ntree_colname, 1, 3))
   
   # Returning R2 values
-  r2_rf = apply(values, 2, max)[colnames(values)[apply(
-    values, 1, which.max)][1]] |> 
-    as.numeric() |> 
-    round(2)
+  r2_flt = str_detect(colnames(values), 'Rsquared')
+  r2_rf = round(apply(values[r2_flt], 1, max)[1], 2)
   
   # Returning RMSEP values
   rmsep_flt = str_detect(colnames(values), 'RMSE')
@@ -179,7 +177,7 @@ for (i in 1:length(parameters_types)){
     ),
     rmsep = rmsep_rf,
     r2 = r2_rf,
-    max.bias = NULL,
+    max.bias = NA,
     p.value = as.numeric(sig_rf$sig)
   )
   

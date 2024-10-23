@@ -23,7 +23,7 @@ write_results = function(t_function) {
 
 write_summary = function(cv, prediction, p) {
   performance = list(
-    parameter = parameters_types[i],
+    parameter = paste0('k = ', getK(cv)),
     r2 = round(cv$bootstrap$r.squared[getK(cv)], 2),
     rmsep = round(RMSEP(cv), 2),
     max.bias = round(cv$bootstrap$max.bias[getK(cv)], 2),
@@ -62,7 +62,7 @@ write_results_rioja = function(cv){
 
 write_summary_rioja = function(cv, p, param){
   performance = list(
-    parameter = parameters_types[i],
+    parameter = param,
     r2 = round(cv$crossval[param,][2], 2),
     rmsep = round(cv$crossval[param,][1], 2),
     max.bias = round(cv$crossval[param,][4], 2),

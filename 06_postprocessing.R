@@ -141,3 +141,44 @@ method = 'spearman'
 for (i in 1:length(parameters_types)){
   param_corr(recons_corr, parameters_types[i], method)
 }
+
+# Summary table formatting
+summary_to_table = function(summary){
+  table = summary |> 
+    lapply(as.data.frame) |> 
+    bind_rows() |> 
+    mutate(variable = names(summary_rf)) |> 
+    relocate(variable)
+  return(table)
+}
+
+summary_mat2 = summary_mat |> 
+  summary_to_table()
+
+summary_wa2 = summary_wa |> 
+  summary_to_table()
+
+summary_wapls2 = summary_wapls |> 
+  summary_to_table()
+
+summary_rf2 = summary_rf |> 
+  summary_to_table()
+
+summary = bind_rows(summary_mat2, summary_wa2, summary_wapls2, summary_rf2)
+models = c('MAT', 'MAT', 'MAT', 'MAT', 'MAT', 'WA', 'WA', 'WA', 'WA', 'WA',
+           'WAPLS', 'WAPLS', 'WAPLS', 'WAPLS', 'WAPLS', 'RF', 'RF', 'RF', 'RF',
+           'RF')
+summary = cbind(summary, models) |> 
+  relocate(models)
+rownames(summary) = 1:nrow(summary)
+
+summary = summary |> 
+  group_by(models, variable)
+
+table = tabulator(
+  x = summary, rows = c('variable', 'parameter'),
+  columns = c('models', 'r2', 'rmsep', 'max.bias', 'p.value'),
+)
+flex_table = as_flextable(summary)
+flex_table = autofit(flex_table, add_w = 0, add_h = 0)
+flex_table
