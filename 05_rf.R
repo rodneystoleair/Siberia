@@ -55,9 +55,6 @@ for (i in 1:length(parameters_types)){
   # Grid for the first CV iteration
   grid = expand.grid(.mtry = c(1:20))
   
-  # start recording performance
-  sink(paste0('output/performance/rf/', parameters_types[i], '_rf.txt'))
-  
   # First RF iterarion: the best mtry
   cv_rf_mtry = train(
     parameter ~ .,
@@ -71,7 +68,6 @@ for (i in 1:length(parameters_types)){
     ntree = 300
   )
   best_mtry = as.numeric(cv_rf_mtry$bestTune$mtry)
-  print(paste0('Best mtry = ', best_mtry))
   
   # Second iteration: best maxnodes
   # New search grid using new mtry value
@@ -97,12 +93,10 @@ for (i in 1:length(parameters_types)){
   
   # Writing the results 
   results_maxnodes = resamples(maxnodes_storage)
-  print(summary(results_maxnodes))
   maxnodes_colname = colnames(
     results_maxnodes$values)[apply(
       results_maxnodes$values, 1, which.max)][1]
   best_maxnodes = as.numeric(substr(maxnodes_colname, 1, 2))
-  print(paste0('Best maxnodes = ', best_maxnodes))
   
   # Third iterarion: the best ntree
   ntree_storage = list()
@@ -126,24 +120,19 @@ for (i in 1:length(parameters_types)){
   
   # Writing the results 
   results_ntree = resamples(ntree_storage)
-  summary(results_ntree)
   values = results_ntree$values
   ntree_colname = colnames(values)[apply(values, 1, which.max)][1]
   best_ntree = as.numeric(substr(ntree_colname, 1, 3))
-  print(paste0('Best ntree = ', best_ntree))
-  print(summary(results_ntree))
   
   # Returning R2 values
   r2_rf = apply(values, 2, max)[colnames(values)[apply(
     values, 1, which.max)][1]] |> 
     as.numeric() |> 
     round(2)
-  print(paste0('R2 = ', r2_rf))
   
   # Returning RMSEP values
   rmsep_flt = str_detect(colnames(values), 'RMSE')
   rmsep_rf = round(apply(values[rmsep_flt], 1, min)[1], 2)
-  print(paste0('RMSEP = ', r2_rf))
   
   # Final reconstruction
   func_rf = train(
@@ -158,9 +147,6 @@ for (i in 1:length(parameters_types)){
     ntree = best_ntree,
     maxnodes = best_maxnodes
   )
-  # Importance of different variables
-  varImp(func_rf)
-  sink()
   
   # Reconstruction results 
   recon_rf = predict(func_rf, fossil_rf)
@@ -212,6 +198,19 @@ for (i in 1:length(parameters_types)){
       best_maxnodes
     )
   )
+  
+  # print summary
+  paste0(parameters_types[i], '--------------------------------------------') |> 
+    print()
+  summary_rf_temp = list(
+    paste0('Best mtry = ', best_mtry),
+    paste0('Best ntree = ', best_ntree),
+    paste0('Best maxnodes = ', best_maxnodes),
+    varImp(func_rf),
+    paste0('R2 = ', r2_rf),
+    paste0('RMSEP = ', r2_rf)
+  ) |>
+    print()
 }
 
 # append the final result with others

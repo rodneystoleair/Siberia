@@ -31,9 +31,6 @@ for (i in 1:length(parameters_types)){
   method = 'WAPLS'
   parameter = pull(parameters_modern, var = parameters_types[i])
   
-  # start recording performance
-  sink(paste0('output/performance/wapls/', parameters_types[i], '_wapls.txt'))
-  
   # basic transfer function
   func_wapls = WAPLS(
     modern_wapls,
@@ -63,11 +60,6 @@ for (i in 1:length(parameters_types)){
     match.data = T,
     verbose = T
   )
-  
-  # print model performance 
-  print(cv_wapls)
-  print(sig_wapls)
-  sink()
   
   # performance & summary writing 
   parameter_name = define_name(parameters_types, i) # parameter type in text
@@ -104,6 +96,12 @@ for (i in 1:length(parameters_types)){
                                            sig_wapls$sig,
                                            model_settings) # summary
   plots(results, method, parameter_name, model_settings) # plot
+  
+  # print summary
+  paste0(parameters_types[i], '--------------------------------------------') |> 
+    print()
+  print(cv_wapls)
+  print(sig_wapls$sig)
 }
 
 # append the final result with others

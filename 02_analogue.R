@@ -40,9 +40,6 @@ for (i in 1:length(parameters_types)){
   method = 'MAT'
   parameter = pull(parameters_modern, var = parameters_types[i])
   
-  # start recording performance
-  sink(paste0('output/performance/mat/', parameters_types[i], '_mat.txt'))
-  
   # initial transfer function
   func_mat = mat(modern_mat, parameter,
                  method = "SQchord") 
@@ -74,22 +71,24 @@ for (i in 1:length(parameters_types)){
   mat = cbind(mat, parameter1)
   colnames(mat)[length(mat)] = paste0(parameters_types[i], '.mat')
   
-  # printing a report
-  print(cv_mat)
-  print(recon_mat)
-  print(sig_mat)
-  sink()
-  
   # results and performance writing
   results = write_results(cv_mat) # results: residuals, predictions for plots
   parameter_name = define_name(parameters_types, i) # text name for plots
   results2 = write_screeplot(cv_mat) # pull the results for scree plots
-  summary_mat[[i]] = write_summary(cv_mat, recon_mat, sig_mat$sig) # performance
+  summary_mat[[i]] = write_summary(cv_mat, recon_mat, sig_mat$sig)
+  # performance
   model_settings = paste0('n of analogues: ', getK(cv_mat)) # settings for plots
   
   # plots
   plots(results, method, parameter_name, model_settings)
   screeplots(results2, method, parameter_name)
+  
+  # print summary
+  paste0(parameters_types[i], '--------------------------------------------') |> 
+    print()
+  print(cv_mat)
+  print(recon_mat)
+  print(sig_mat$sig)
 }
 
 # 4. Analogue quality assessment (by R.J. Telford) ----

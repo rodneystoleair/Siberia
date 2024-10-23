@@ -31,9 +31,6 @@ for (i in 1:length(parameters_types)){
   method = 'WA'
   parameter = pull(parameters_modern, var = parameters_types[i])
   
-  # start recording performance
-  sink(paste0('output/performance/wa/', parameters_types[i], '_wa.txt'))
-  
   # basic transfer function
   func_wa = WA(
     modern_wa,
@@ -66,11 +63,6 @@ for (i in 1:length(parameters_types)){
     match.data = T,
     verbose = T
   )
-  
-  # print model performance 
-  print(cv_wa)
-  print(sig_wa)
-  sink()
   
   # performance & summary writing 
   parameter_name = define_name(parameters_types, i) # parameter type in text
@@ -108,6 +100,12 @@ for (i in 1:length(parameters_types)){
                                         sig_wa$sig,
                                         model_settings) # summary
   plots(results, method, parameter_name, model_settings) # plot
+  
+  # print summary
+  paste0(parameters_types[i], '--------------------------------------------') |> 
+    print()
+  print(cv_wa)
+  print(sig_wa$sig)
   }
 
 # append the final result with others
