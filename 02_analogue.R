@@ -28,13 +28,7 @@ fossil_mat = fossil_mat |>
 modern_mat = modern_mat |> 
   select(-`Menuanthes trifoliata`)
 
-# 3. Analogue quality assessment (by R.J. Telford) ----
-n_analogs = minDC(recon_mat)$minDC
-goodpoorbad = quantile(paldist(modern_mat), prob = c(0.05, 0.1))
-plot(ages, n_analogs, ylab = "Squared chord distance", xlab = "Depth")
-abline(h=goodpoorbad, col=c("orange", "red"))
-
-# 4. MAT transfer function ----
+# 3. MAT transfer function ----
 # Transfer function & cross-validation. Cycle repeats for every reconstruction
 # parameter. Also performance results are being written into text file
 i = 0 # Increment
@@ -97,6 +91,12 @@ for (i in 1:length(parameters_types)){
   plots(results, method, parameter_name, model_settings)
   screeplots(results2, method, parameter_name)
 }
+
+# 4. Analogue quality assessment (by R.J. Telford) ----
+n_analogs = minDC(recon_mat)$minDC
+goodpoorbad = quantile(paldist(modern_mat), prob = c(0.05, 0.1))
+plot(ages, n_analogs, ylab = "Squared chord distance", xlab = "Depth")
+abline(h=goodpoorbad, col=c("orange", "red"))
 
 # append the final result with others
 recons = cbind(recons, mat)
