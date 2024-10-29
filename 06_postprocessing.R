@@ -4,7 +4,7 @@
 #   2. Stratigraphical plotting
 #   3. Correlation analysis between fitted values
 #   4. Nice summary table formatting
-# Visualization relies on pre-recorded parameter names, divided into two groups:
+# Visualisation relies on pre-recorded parameter names, divided into two groups:
 # ordinary and woody. If you want to add some more, you need to write their
 # full names for plots :)
 
@@ -175,10 +175,8 @@ rownames(summary) = 1:nrow(summary)
 summary = summary |> 
   group_by(models, variable)
 
-table = tabulator(
-  x = summary, rows = c('variable', 'parameter'),
-  columns = c('models', 'r2', 'rmsep', 'max.bias', 'p.value'),
-)
+table = summary
+
 flex_table = as_flextable(summary)
-flex_table = autofit(flex_table, add_w = 0, add_h = 0)
+flex_table = bold(flex_table, ~ p.value <= 0.1, ~ p.value, bold = TRUE)
 flex_table

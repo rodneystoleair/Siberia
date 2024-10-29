@@ -5,7 +5,7 @@
 ## Provided scripts are written to perform reconstructions for multiple
 ## cores and environmental parameters.
 
-# 0. Starting: if you're not using RStudio project
+# 0. Starting: if you're not using a RStudio project
 # setwd('.../Siberia reconstruction/')
 
 # 1. Dependencies ----
@@ -30,7 +30,7 @@ ages = read_excel(paste0('data/fossil/ages_', name, '.xlsx'), col_names = F) |>
   pull()
 
 # Modern data (training set)
-modern = read_excel('data/modern/modern_new.xlsx',
+modern = read_excel('data/modern/modern.xlsx',
                     col_types = c('text', rep('numeric', 51))) |>
   as.data.frame() |>
   arrange(points)
