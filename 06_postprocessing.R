@@ -16,25 +16,20 @@ library('tidyverse')
 library('tidypaleo')
 
 # 2. Data handling ----
-# Last 3 samples removal. After reconstruction assessment, we decided that
-# reconstruction for them are not reliable due to unrealistic values.
-# This topic requires additional research.
-recons = recons[-1:-3,] 
-
 # Converting to longer format 
 recon_plot = recons |> 
   pivot_longer(contains(c('mat', 'wa', 'wapls', 'rf')), names_to = 'type', 
                values_to = 'fitted') |> 
   transform(depth = as.numeric(depth)) |> 
-  transform(ages = as.numeric(ages)) |> 
+  transform(ages = abs(as.numeric(ages) - 1950)) |> 
   separate(type, into = c('type1', 'type2'), sep = '\\.') # separate types
   # mutate(type1 = fct_relevel(type1, c('km50', 'km20', 'km10', 'km5')))
 
 ordinary = c(
-  'T_jan' = 'January mean T, С°',
-  'T_jul' = 'July mean T, С°',
-  'T_ann' = 'Year mean T, С°',
-  'P_ann' = 'Year precipitation, mm',
+  'T_jan' = 'Tjan, °C',
+  'T_jul' = 'Tjuly, °C',
+  'T_ann' = 'Tann, °C',
+  'P_ann' = 'Pann, mm',
   'km20' = 'Woody cover, 20 km')
 
 woody = c(
@@ -55,7 +50,7 @@ ggplot(data = recon_plot, aes(x = ages, y = fitted, color = type2,
   scale_color_discrete(name = 'Model',
                        labels = c('MAT', 'RF', 'WA', 'WAPLS')) +
   theme(legend.position = 'bottom') +
-  facet_wrap(~type1, scales = 'free', labeller = labeller(type1 = ordinary)) +
+  facet_wrap(~type1, scales = 'free', labeller = labeller(type1 = c(ordinary, woody))) +
   theme_classic()
 
 ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
@@ -92,27 +87,28 @@ vert_plot = ggplot(recon_plot, aes(x = fitted,
              linetype = 6, size = 0.4, color = 'red') +
   geom_vline(aes(xintercept = xintercept),
              data = tibble(type1 = 'T_jan', xintercept = -36.2),
-             linetype = 6, size = 0.4, color = 'red') +
-  scale_y_reverse()  +
+              linetype = 6, size = 0.4, color = 'red') +
+  # scale_y_reverse()  +
   facet_geochem_gridh(vars(type1),
                       labeller = labeller(type1 = ordinary)) +
   labs(x = 'Reconstructed values',
        y = 'Age (cal yr BP)') +
   scale_color_discrete(name = 'Model',
                        labels = c('MAT', 'RF', 'WA', 'WAPLS')) +
+  scale_y_continuous(breaks = seq(1890, 2020, 10)) +
   theme(legend.position = 'bottom') +
   theme_paleo() +
   rotated_axis_labels(45)
 vert_plot
 
-age_model = age_depth_model(depth = recon_plot$depth,
-                            age = recon_plot$ages)
-
-vert_plot +
-  scale_y_age_depth(age_model, depth_name = 'Depth, cm')
+# age_model = age_depth_model(depth = recon_plot$depth,
+#                             age = recon_plot$ages)
+# 
+# vert_plot +
+#   scale_y_age_depth(age_model, depth_name = 'Depth, cm')
 
 ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
-              'reconstructions_woody.pdf'),
+              'reconstructions_climate.pdf'),
        plot = last_plot(), device = 'pdf', width = 2700, height = 1800,
        units = 'px')
 
@@ -143,6 +139,7 @@ for (i in 1:length(parameters_types)){
 }
 
 # Summary table formatting
+
 summary_to_table = function(summary){
   table = summary |> 
     lapply(as.data.frame) |> 
@@ -165,9 +162,9 @@ summary_rf2 = summary_rf |>
   summary_to_table()
 
 summary = bind_rows(summary_mat2, summary_wa2, summary_wapls2, summary_rf2)
-models = c('MAT', 'MAT', 'MAT', 'MAT', 'MAT', 'WA', 'WA', 'WA', 'WA', 'WA',
-           'WAPLS', 'WAPLS', 'WAPLS', 'WAPLS', 'WAPLS', 'RF', 'RF', 'RF', 'RF',
-           'RF')
+models = c('MAT', 'MAT', 'MAT', 'MAT', 'WA', 'WA', 'WA', 'WA',
+           'WAPLS', 'WAPLS', 'WAPLS', 'WAPLS', 'RF', 'RF', 
+           'RF', 'RF')
 summary = cbind(summary, models) |> 
   relocate(models)
 rownames(summary) = 1:nrow(summary)
@@ -180,3 +177,6 @@ table = summary
 flex_table = as_flextable(summary)
 flex_table = bold(flex_table, ~ p.value <= 0.1, ~ p.value, bold = TRUE)
 flex_table
+
+writexl::write_xlsx(summary, paste0('output/', paste0(name, '_'),
+                                    'summary_woody.xlsx'))

@@ -12,7 +12,6 @@
 # Packages loading
 library('readxl')
 library('writexl')
-library('neotoma2')
 library('tidyverse')
 
 # 2. Data loading ---- 
@@ -61,18 +60,24 @@ row.names(modern) = modern$points
 row.names(fossil) = fossil$variable
 colnames(fossil) = colnames(modern)
 
-parameters_modern = semi_join(climate, modern, by = 'points') |>
-  inner_join(cover) |>
-  select(-km50, -km10, -km5)
-
 # parameters_modern = semi_join(climate, modern, by = 'points') |>
 #   inner_join(cover) |>
-#   select(points, km50, km20, km10, km5)
+#   select(-km50, -km10, -km20, -km5)
+
+parameters_modern = semi_join(climate, modern, by = 'points') |>
+  inner_join(cover) |>
+  select(km50, km20, km10, km5)
 
 parameters_types = colnames(parameters_modern)[-1]
 
 fossil = select(fossil, -points)
 modern = select(modern, -points)
+
+# Excluding unnecessary taxa
+fossil = fossil |> 
+  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+modern = modern |> 
+  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
 
 # Data frame creation for final reconstructions. They will be bound to each
 # other in the ends of reconstructions.
