@@ -16,7 +16,7 @@ source('R/plotting_functions.R')
 
 # 2. Data ----
 # Data frames join
-dat = join(modern, fossil, verbose = T)
+dat = join(modern, fossil)
 
 # For MAT data needs to be proportional
 modern_mat = dat$modern / 100 
@@ -88,7 +88,7 @@ for (i in 1:length(parameters_types)){
 # 4. Analogue quality assessment (by R.J. Telford) ----
 n_analogs = minDC(recon_mat)$minDC
 goodpoorbad = quantile(paldist(modern_mat), prob = c(0.05, 0.1))
-plot(ages, n_analogs, ylab = "Squared chord distance", xlab = "Depth")
+plot(ages, n_analogs, ylab = "Squared chord distance", xlab = "Cal yr BP")
 abline(h = goodpoorbad, col = c("orange", "red"))
 
 # append the final result with others

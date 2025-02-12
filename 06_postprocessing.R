@@ -15,6 +15,22 @@ library('flextable')
 library('tidyverse')
 library('tidypaleo')
 
+recons = readxl::read_xlsx(paste0('output/reconstructed/', name,
+                                  '_climate.xlsx')) |> 
+  mutate(depth = as.character(depth))
+
+median = read_delim('data/fossil/NizhnyayaTunguska_52_ages.txt') |> 
+  select(depth, median) |> 
+  mutate(depth = as.character(depth))
+median
+
+recons = recons |> 
+  select(-ages) |>
+  mutate(depth = as.character(depth)) |> 
+  left_join(median, by = 'depth') |> 
+  relocate(median, .after = depth) |> 
+  rename(ages = median)
+
 # 2. Data handling ----
 # Converting to longer format 
 recon_plot = recons |> 
@@ -22,7 +38,7 @@ recon_plot = recons |>
                values_to = 'fitted') |> 
   transform(depth = as.numeric(depth)) |> 
   transform(ages = abs(as.numeric(ages) - 1950)) |> 
-  separate(type, into = c('type1', 'type2'), sep = '\\.') # separate types
+  separate(type, into = c('type1', 'type2'), sep = '\\.')  # separate types
   # mutate(type1 = fct_relevel(type1, c('km50', 'km20', 'km10', 'km5')))
 
 ordinary = c(
@@ -76,21 +92,21 @@ vert_plot = ggplot(recon_plot, aes(x = fitted,
   # geom_vline(aes(xintercept = xintercept),
   #            data = tibble(type1 = 'km5', xintercept = 0.94),
   #            linetype = 6, size = 0.4, color = 'red') +
-  geom_vline(aes(xintercept = xintercept),
-             data = tibble(type1 = 'P_ann', xintercept = 373),
-             linetype = 6, size = 0.4, color = 'red') +
-  geom_vline(aes(xintercept = xintercept),
-             data = tibble(type1 = 'T_ann', xintercept = -9.3),
-             linetype = 6, size = 0.4, color = 'red') +
-  geom_vline(aes(xintercept = xintercept),
-             data = tibble(type1 = 'T_jul', xintercept = 16.5),
-             linetype = 6, size = 0.4, color = 'red') +
-  geom_vline(aes(xintercept = xintercept),
-             data = tibble(type1 = 'T_jan', xintercept = -36.2),
-              linetype = 6, size = 0.4, color = 'red') +
+  # geom_vline(aes(xintercept = xintercept),
+  #            data = tibble(type1 = 'P_ann', xintercept = 373),
+  #            linetype = 6, size = 0.4, color = 'red') +
+  # geom_vline(aes(xintercept = xintercept),
+  #            data = tibble(type1 = 'T_ann', xintercept = -9.3),
+  #            linetype = 6, size = 0.4, color = 'red') +
+  # geom_vline(aes(xintercept = xintercept),
+  #            data = tibble(type1 = 'T_jul', xintercept = 16.5),
+  #            linetype = 6, size = 0.4, color = 'red') +
+  # geom_vline(aes(xintercept = xintercept),
+  #            data = tibble(type1 = 'T_jan', xintercept = -36.2),
+  #             linetype = 6, size = 0.4, color = 'red') +
   # scale_y_reverse()  +
   facet_geochem_gridh(vars(type1),
-                      labeller = labeller(type1 = ordinary)) +
+                      labeller = labeller(type1 = woody)) +
   labs(x = 'Reconstructed values',
        y = 'Age (cal yr BP)') +
   scale_color_discrete(name = 'Model',
@@ -108,8 +124,8 @@ vert_plot
 #   scale_y_age_depth(age_model, depth_name = 'Depth, cm')
 
 ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
-              'reconstructions_climate.pdf'),
-       plot = last_plot(), device = 'pdf', width = 2700, height = 1800,
+              'reconstructions_woody.pdf'),
+       plot = vert_plot, device = 'pdf', width = 2700, height = 1800,
        units = 'px')
 
 # 4. Correlation analysis between reconstructed values ----
@@ -117,8 +133,14 @@ recons_corr = recons |>
   select(-depth, -ages)
 
 param_corr = function(recons_data, parameter, method) {
+  if (parameter != 'km5') {
   corr_data = recons_data |> 
     select(contains(parameter))
+  } else if (parameter == 'km5') {
+    corr_data = recons_data |> 
+      select(contains('km5')) |> 
+      select(-contains('km50'))
+  }
   corr = round(cor(corr_data, method = method), 2)
   pvalue = cor_pmat(corr)
   plot = ggcorrplot(corr, hc.order = T, type = 'lower', p.mat = pvalue,
@@ -178,5 +200,5 @@ flex_table = as_flextable(summary)
 flex_table = bold(flex_table, ~ p.value <= 0.1, ~ p.value, bold = TRUE)
 flex_table
 
-writexl::write_xlsx(summary, paste0('output/', paste0(name, '_'),
+writexl::write_xlsx(summary, paste0('output/summary/', paste0(name, '_'),
                                     'summary_woody.xlsx'))

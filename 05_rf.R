@@ -214,3 +214,7 @@ for (i in 1:length(parameters_types)){
 # append the final result with others
 rf = rf[,-1]
 recons = cbind(recons, rf)
+
+# write reconstructions into sheet
+writexl::write_xlsx(recons, paste0('output/reconstructed/', name,
+                                   '_woody.xlsx'))

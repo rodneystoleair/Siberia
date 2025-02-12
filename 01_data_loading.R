@@ -24,7 +24,7 @@ fossil = read_excel(paste0('data/fossil/fossil_', name, '.xlsx')) |>
   spread(depth, value) |>
   transform(variable = as.numeric(variable)) |>
   arrange(variable)
-depth = rownames(fossil)
+depth = fossil$variable
 ages = read_excel(paste0('data/fossil/ages_', name, '.xlsx'), col_names = F) |> 
   pull()
 
@@ -66,7 +66,7 @@ colnames(fossil) = colnames(modern)
 
 parameters_modern = semi_join(climate, modern, by = 'points') |>
   inner_join(cover) |>
-  select(km50, km20, km10, km5)
+  select(points, km50, km20, km10, km5)
 
 parameters_types = colnames(parameters_modern)[-1]
 

@@ -10,64 +10,83 @@
 # settings: one string with necessary model features, for subtitle too.
 # desc       : function uses the tibble after given writing functions
 
-plots = function(dataset, method_type, param_name, settings){
+plots = function(dataset, method_type, param_name, settings, is.suppl = F){
   regr_line1 = tibble(
     fitted = fitted(lm(fitted_recon ~ observed_orig,
                        data = dataset)),
     observed = dataset$observed_orig
   )
   
-  ggplot(data = dataset) +
-    geom_line(data = regr_line1,
-              aes(x = observed,
-                  y = fitted),
-              color = 'black',
-              linewidth = 0.2) +
-    geom_point(mapping = aes(x = observed_orig,
-                             y = fitted_recon),
-               color = 'salmon',
-               alpha = 0.5,
-               size = 3,
-               shape = 1) +
+  obs_v_fit = ggplot(data = dataset) +
+    geom_line(
+      data = regr_line1,
+      aes(x = observed,
+          y = fitted),
+      color = 'black',
+      linewidth = 0.2
+    ) +
+    geom_point(
+      mapping = aes(x = observed_orig,
+                    y = fitted_recon),
+      color = 'salmon',
+      alpha = 0.5,
+      size = 3,
+      shape = 1
+    ) +
     ggtitle(method_type,
-            subtitle = paste0(param_name, ', ',settings)) +
+            subtitle = paste0(param_name, ', ', settings)) +
     xlab('Obsevrved') +
     ylab('Fitted') +
     theme_classic()
-  ggsave(paste0(parameters_types[i], '_', method, '_cv1.png'),
-         path = paste0('plots/', method, '/'),
-         width = 1600,
-         height = 1200,
-         units = 'px')
+  
+  if (is.suppl == F) {
+    ggsave(paste0(parameters_types[i], '_', method, '_cv1.png'),
+           plot = obs_v_fit,
+           path = paste0('plots/', method, '/'),
+           width = 1600,
+           height = 1200,
+           units = 'px')
+  } else if (is.suppl == T) {
+    return(obs_v_fit)
+  }
   
   regr_line2 = tibble(
     fitted = fitted(lm(residuals_recon ~ observed_orig,
                        data = dataset)),
     observed = dataset$observed_orig
   )
-  ggplot(data = dataset) +
-    geom_line(data = regr_line2,
-              aes(x = observed,
-                  y = fitted),
-              color = 'black',
-              linewidth = 0.2) +
-    geom_point(mapping = aes(x = observed_orig,
-                             y = residuals_recon),
-               color = 'salmon',
-               alpha = 0.5,
-               size = 2,
-               shape = 1) +
+  
+  obs_v_resid = ggplot(data = dataset) +
+    geom_line(
+      data = regr_line2,
+      aes(x = observed,
+          y = fitted),
+      color = 'black',
+      linewidth = 0.2
+    ) +
+    geom_point(
+      mapping = aes(x = observed_orig,
+                    y = residuals_recon),
+      color = 'salmon',
+      alpha = 0.5,
+      size = 2,
+      shape = 1
+    ) +
     ggtitle(method,
             subtitle = paste0(param_name, ', ', settings, ' - residuals')) +
     xlab('Observed') +
     ylab('Residuals') +
     theme_classic()
+  
+  if (is.suppl == F) {
   ggsave(paste0(parameters_types[i], '_', method,
                 '_cv2.png'),
+         plot = obs_v_resid,
          path = paste0('plots/', method, '/'),
          width = 1600,
          height = 1200,
          units = 'px')
+  }
 }
 
 # define_name ----
@@ -77,48 +96,48 @@ plots = function(dataset, method_type, param_name, settings){
 # desc       : -
 
 # In English
-# define_name = function(x, i){
-#   if (x[i] == 'T_jan'){
-#     param_name = 'Mean January temperature, С°'
-#   } else if (x[i] == 'T_jul'){
-#     param_name = 'Mean July temperature, С°'
-#   } else if (x[i] == 'T_ann'){
-#     param_name = 'Mean annual temperature, С°'
-#   } else if (x[i] == 'P_ann'){
-#     param_name = 'Mean precipitation, mm/yr'
-#   } else if (x[i] == 'km50'){
-#     param_name = 'Woody cover, 50 km radius'
-#   } else if (x[i] == 'km20'){
-#     param_name = 'Woody cover, 20 km radius'
-#   } else if (x[i] == 'km10'){
-#     param_name = 'Woody cover, 10 km radius'
-#   } else if (x[i] == 'km5'){
-#     param_name = 'Woody cover, 5 km radius'
-#   }
-#   return(param_name)
-# }
-
-# In Russian
 define_name = function(x, i){
   if (x[i] == 'T_jan'){
-    param_name = 'Средняя температура января, С°'
+    param_name = 'Mean January temperature, °C'
   } else if (x[i] == 'T_jul'){
-    param_name = 'Средняя температура июля, С°'
+    param_name = 'Mean July temperature, °C'
   } else if (x[i] == 'T_ann'){
-    param_name = 'Среднегодовая температура, С°'
+    param_name = 'Mean annual temperature, °C'
   } else if (x[i] == 'P_ann'){
-    param_name = 'Осадков в год, мм'
+    param_name = 'Mean precipitation, mm/yr'
   } else if (x[i] == 'km50'){
-    param_name = 'Лесистость в радиусе 50 км, доля'
+    param_name = 'Woody cover, 50 km radius'
   } else if (x[i] == 'km20'){
-    param_name = 'Лесистость в радиусе 20 км, доля'
+    param_name = 'Woody cover, 20 km radius'
   } else if (x[i] == 'km10'){
-    param_name = 'Лесистость в радиусе 10 км, доля'
+    param_name = 'Woody cover, 10 km radius'
   } else if (x[i] == 'km5'){
-    param_name = 'Лесистость в радиусе 5 км, доля'
+    param_name = 'Woody cover, 5 km radius'
   }
   return(param_name)
 }
+
+# In Russian
+# define_name = function(x, i){
+#   if (x[i] == 'T_jan'){
+#     param_name = 'Средняя температура января, С°'
+#   } else if (x[i] == 'T_jul'){
+#     param_name = 'Средняя температура июля, С°'
+#   } else if (x[i] == 'T_ann'){
+#     param_name = 'Среднегодовая температура, С°'
+#   } else if (x[i] == 'P_ann'){
+#     param_name = 'Осадков в год, мм'
+#   } else if (x[i] == 'km50'){
+#     param_name = 'Лесистость в радиусе 50 км, доля'
+#   } else if (x[i] == 'km20'){
+#     param_name = 'Лесистость в радиусе 20 км, доля'
+#   } else if (x[i] == 'km10'){
+#     param_name = 'Лесистость в радиусе 10 км, доля'
+#   } else if (x[i] == 'km5'){
+#     param_name = 'Лесистость в радиусе 5 км, доля'
+#   }
+#   return(param_name)
+# }
 
 # write_screeplot ----
 # written by : Rodion Andreev

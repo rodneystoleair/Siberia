@@ -1,11 +1,10 @@
 ---
-title: "Supplementary 1 for ..."
-author: "Rodion A. Andreev"
+title: "Supplementary 2 for 'Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques'"
+author: "Rodion Andreev, Elena Novenko"
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
-  html_document: default
-  word_document: default
+  pdf_document:
+    latex_engine: xelatex
 ---
 ```{r Package loading, echo=FALSE, message=FALSE, results='hide'}
 library('readxl')
@@ -16,43 +15,49 @@ library('rioja')
 library('randomForest')
 library('e1071')
 library('caret')
+source('R/writing_functions.R')
+source('R/plotting_functions.R')
 ```
 
 
 ```{r Data loading, echo=FALSE, message=FALSE, results='hide'}
-fossil = read_excel('fossil/fossil_Gornoe.xlsx') |> 
-  gather(variable, value, -depth) |>  
+fossil = read_excel('data/fossil/fossil_NizhnyayaTunguska.xlsx') |>
+  gather(variable, value, -depth) |>
   spread(depth, value) |>
-  transform(variable = as.numeric(variable)) |> 
+  transform(variable = as.numeric(variable)) |>
   arrange(variable)
+depth = fossil$variable
+ages = read_excel(paste0('data/fossil/ages_NizhnyayaTunguska.xlsx'), col_names = F) |> 
+  pull()
 
 # Modern data (training set)
-modern = read_excel('modern/modern_new.xlsx', 
-                    col_types = c('text', rep('numeric', 51))) |> 
-  as.data.frame() |> 
+modern = read_excel('data/modern/modern.xlsx',
+                    col_types = c('text', rep('numeric', 51))) |>
+  as.data.frame() |>
   arrange(points)
 
 # Parameters
 # Woody cover
-cover = read_excel('parameters/woody_cover.xlsx',
-                   col_types = c('text', rep('numeric', 4), 'text', 'text')) |> 
-  as.data.frame() |> 
+cover = read_excel('data/parameters/woody_cover.xlsx',
+                   col_types = c('text', rep('numeric', 4), 'text', 'text')) |>
+  as.data.frame() |>
   arrange(points)
 
 # Climate
-climate = read_excel('parameters/climate.xlsx',
+climate = read_excel('data/parameters/climate.xlsx',
                      col_types = c('text', rep('numeric', 4))) |> 
   arrange(points)
 
 # Biome selection
-modern = left_join(modern, 
+modern = left_join(modern,
                    cover,
-                   by = 'points') |> 
-  select(-km50:-type1) |> 
-  filter(!str_detect(type2, 'putorana')) |> 
+                   by = 'points') |>
+  select(-km50:-type1) |>
+  filter(!str_detect(type2, 'putorana')) |>
   select(-type2)
 cover = select(cover, -type1:-type2)
 
+# Column names switch
 row.names(modern) = modern$points
 row.names(fossil) = fossil$variable
 colnames(fossil) = colnames(modern)
@@ -65,213 +70,215 @@ parameters_types = colnames(parameters_modern)[-1]
 fossil = select(fossil, -points)
 modern = select(modern, -points)
 
-depth = rownames(fossil)
-ages = read_excel('fossil/ages_Gornoe.xlsx', col_names = F) |> 
-  pull()
+# Excluding unnecessary taxa
+fossil = fossil |> 
+  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+modern = modern |> 
+  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+
 recons = data.frame(depth)
-
-write_results = function(t_function){
-  results = tibble(
-    fitted_recon = fitted(t_function)$estimated,
-    residuals_recon = resid(t_function, k = getK(t_function))$bootstrap[,getK(t_function)],
-    observed_orig = t_function$observed
-  )
-}
-
-write_results_rioja = function(cv){
-  performance = performance(cv)
-  type = names(performance[["crossval"]][,1][which.min(performance[["crossval"]][,1])])
-  fitted_all = as.data.frame(fitted(cv))
-  residuals_all = as.data.frame(residuals(cv, cv = T))
-  results = tibble(
-    fitted_recon = fitted_all[, type],
-    residuals_recon = residuals_all[, type],
-    observed_orig = cv[['x']]
-  )
-  return(results)
-}
-
-write_results_rf = function(t_function){
-  results = tibble(
-    fitted_recon = t_function$finalModel$predicted,
-    residuals_recon = t_function$finalModel$y - t_function$finalModel$predicted,
-    observed_orig = t_function$finalModel$y
-  )
-  return(results)
-}
-
-plot2 = function(dataset, method_type, param_name, settings, number){
-  regr_line1 = tibble(
-    fitted = fitted(lm(fitted_recon ~ observed_orig,
-                       data = dataset)),
-    observed = dataset$observed_orig
-  )
-  
-  plot = ggplot(data = dataset) +
-    geom_line(data = regr_line1,
-              aes(x = observed,
-                  y = fitted),
-              color = 'black',
-              linewidth = 0.2) +
-    geom_point(mapping = aes(x = observed_orig,
-                             y = fitted_recon),
-               color = 'salmon',
-               alpha = 0.5,
-               size = 3,
-               shape = 1) +
-    ggtitle(paste0('Fig. ', toString(number), ', ', method_type),
-            subtitle = paste0(param_name, ', ', settings)) +
-    xlab('Obsevrved') +
-    ylab('Fitted') +
-    theme_classic()
-  
-  return(plot)
-}
-
-define_name = function(x, i){
-  if (x[i] == 'T_jan'){
-    param_name = 'January mean T, °C'
-  } else if (x[i] == 'T_jul'){
-    param_name = 'July mean T, °C'
-  } else if (x[i] == 'T_ann'){
-    param_name = 'Annual mean T, °C'
-  } else if (x[i] == 'P_ann'){
-    param_name = 'Annual precipitation, mm'
-  } else if (x[i] == 'km50'){
-    param_name = 'Woody cover, 50 km radius'
-  } else if (x[i] == 'km20'){
-    param_name = 'Woody cover, 20 km radius'
-  } else if (x[i] == 'km10'){
-    param_name = 'Woody cover, 10 km radius'
-  } else if (x[i] == 'km5'){
-    param_name = 'Woody cover, 5 km radius'
-  }
-  return(param_name)
-}
 ```
 
+## Scatter plots
+### 1. MAT scatter plots
 
-### MAT scatterplots
+```{r MAT scatterplots, echo=FALSE, fig.keep='all', out.width='50%', out.height='50%'}
+dat = join(modern, fossil)
 
-```{r MAT scatterplots, echo=FALSE, results='hide', fig.keep='all', out.width='50%', out.height='50%'}
-dat = join(modern, fossil, verbose = T)
+# For MAT data needs to be proportional
 modern_mat = dat$modern / 100 
 fossil_mat = dat$fossil / 100
-fossil_mat = fossil_mat |> 
-  select(-`Menuanthes trifoliata`)
-modern_mat = modern_mat |> 
-  select(-`Menuanthes trifoliata`)
-set.seed(1234)
 
-i = 0
+i = 0 # Increment
 mat = data.frame(ages)
+summary_mat = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){
+  # initial parameters
   method = 'MAT'
-  
   parameter = pull(parameters_modern, var = parameters_types[i])
   
+  # initial transfer function
   func_mat = mat(modern_mat, parameter,
-                 method = "SQchord")
+                 method = "SQchord") 
+  
+  # bootstrap cross-validation
   cv_mat = bootstrap(func_mat, n.boot = 100)
+  
+  # prediction on newdata
   recon_mat = predict(func_mat, fossil_mat, k = getK(cv_mat))
-  parameter1 = recon_mat[["predictions"]][["model"]][["predicted"]][getK(cv_mat),]
+  
+  # pull the prediction 
+  parameter1 =
+    recon_mat$predictions$model$predicted[getK(cv_mat),]
+  
+  # bind fitted values for one parameter with others
   mat = cbind(mat, parameter1)
   colnames(mat)[length(mat)] = paste0(parameters_types[i], '.mat')
   
-  results = write_results(cv_mat)
-  parameter_name = define_name(parameters_types, i)
-  model_settings = paste0('n of analogues: ', getK(cv_mat))
+  # results and performance writing
+  results = write_results(cv_mat) # results: residuals, predictions for plots
+  parameter_name = define_name(parameters_types, i) # text name for plots
+  results2 = write_screeplot(cv_mat) # pull the results for scree plots
+  # performance
+  model_settings = paste0('n of analogues: ', getK(cv_mat)) # settings for plots
   
-  print(plot2(results, method, parameter_name, model_settings, i))
+  # plots
+  plots(results, method, parameter_name, model_settings, is.suppl = T) |> 
+    print()
 }
 ```
 
-Figures 1.1-1.8. Scatterplots for Modern Analogue Technique (MAT) reconstruction, observed vs. fitted. Figures 1.1-1.4 are for climatic parameters, 1.5-1.8 for woody cover. The solid black line is regression line.
+Figures 1.1-1.8. Scatter plots for Modern Analogue Technique (MAT) reconstruction, observed vs. fitted. Figures 1.1-1.4 are for climatic parameters, 1.5-1.8 for woody cover. The solid black line is regression line.
 
-### WA scatterplots
+### 2. WA scatter plots
 
 ```{r WA scatterplots, echo=FALSE, results='hide', fig.keep='all', out.width='50%', out.height='50%'}
 condition = colSums(modern) != 0
 modern_wa = modern[, condition]
 
-i = 0
+i = 0 # increment
 wa = data.frame(ages)
+summary_wa = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){
+  
+  # initial parameters
   method = 'WA'
-
   parameter = pull(parameters_modern, var = parameters_types[i])
-
-  func_wa = WA(modern_wa, parameter,
-               mono = F, tolDW = F, use.N2 = F, tol.cut=.01,
-               check.data = T, lean = F)
-
-  cv_wa = crossval(func_wa, cv.method = 'bootstrap', verbose = T, ngroups = 10,
-                   nboot = 100, h.cutoff = 0, h.dist = NULL)
-
-  recon_wa = predict(func_wa, newdata = fossil, sse = F, nboot = 100,
-                     match.data = T, verbose = T)
-
-  parameter1 = recon_wa$fit[,1] |>
-    as.data.frame()
+  
+  # basic transfer function
+  func_wa = WA(
+    modern_wa,
+    parameter,
+    mono = F,
+    tolDW = F,
+    use.N2 = F,
+    tol.cut = .01,
+    check.data = T,
+    lean = F
+  )
+  
+  # bootstrap cross-validation
+  cv_wa = crossval(
+    func_wa,
+    cv.method = 'bootstrap',
+    verbose = T,
+    ngroups = 10,
+    nboot = 100,
+    h.cutoff = 0,
+    h.dist = NULL
+  )
+  
+  # prediction with newdata
+  recon_wa = predict(
+    func_wa,
+    newdata = fossil,
+    sse = F,
+    nboot = 100,
+    match.data = T,
+    verbose = T
+  )
+  
+  # performance & summary writing 
+  parameter_name = define_name(parameters_types, i) # parameter type in text
+  performance_cv = performance(cv_wa) # write performance using rioja function
+  
+  model_settings = names(
+    performance_cv$crossval[,1][which.min(
+      performance_cv$crossval[,1])]) # pull model parameters
+  
+  # pull fitted values: best model parameters
+  parameter1 = recon_wa$fit[,model_settings]
+  
+  # bind fitted values for one parameter with others
   wa = cbind(wa, parameter1)
   colnames(wa)[length(wa)] = paste0(parameters_types[i], '.wa')
-
-  parameter_name = define_name(parameters_types, i)
-  performance_cv = performance(cv_wa)
-  model_settings = names(performance_cv[["crossval"]][,1][which.min(performance_cv[["crossval"]][,1])])
-  results = write_results_rioja(cv_wa)
-  print(plot2(results, method, parameter_name, model_settings, i))
- }
+  
+  results = write_results_rioja(cv_wa) # write results
+  plots(results, method, parameter_name, model_settings, is.suppl = T) |> 
+    print()
+  }
 ```
 
-Figures 2.1-2.8. Scatterplots for weighted averaging (WA) reconstruction, observed vs. fitted. Figures 2.1-2.4 are for climatic parameters, 2.5-2.8 for woody cover. The solid black line is regression line.
+Figures 2.1-2.8. Scatter plots for weighted averaging (WA) reconstruction, observed vs. fitted. Figures 2.1-2.4 are for climatic parameters, 2.5-2.8 for woody cover. The solid black line is regression line.
 
-### WAPLS scatterplots
+### 3. WAPLS scatter plots
 
 ```{r WAPLS scatterplots, echo=FALSE, results='hide', fig.keep='all', out.width='50%', out.height='50%'}
 condition = colSums(modern) != 0
 modern_wapls = modern[, condition]
 
-i = 0
+i = 0 # increment
 wapls = data.frame(ages)
+summary_wapls = performance_summary(parameters_types) # for summary
+
 for (i in 1:length(parameters_types)){
+  
+  # initial parameters
   method = 'WAPLS'
-
   parameter = pull(parameters_modern, var = parameters_types[i])
-
-  func_wapls = WAPLS(modern_wapls, parameter, npls = 3, iswapls = T, standx = F,
-                     lean = F, check.data = T)
-
-  cv_wapls = crossval(func_wapls, cv.method = 'bootstrap', verbose = T, ngroups=10,
-                      nboot = 100)
-
-  recon_wapls = predict(func_wapls, newdata = fossil, sse = F, nboot=100,
-                        match.data = T, verbose = T)
-
-  parameter1 = recon_wapls[["fit"]] |>
-    as.data.frame() |>
-    select(Comp03)
+  
+  # basic transfer function
+  func_wapls = WAPLS(
+    modern_wapls,
+    parameter,
+    npls = 3,
+    iswapls = T,
+    standx = F,
+    lean = F,
+    check.data = T
+  )
+  
+  # bootstrap cross-validation
+  cv_wapls = crossval(
+    func_wapls,
+    cv.method = 'bootstrap',
+    verbose = T,
+    ngroups = 10,
+    nboot = 100
+  )
+  
+  # prediction with newdata
+  recon_wapls = predict(
+    func_wapls,
+    newdata = fossil,
+    sse = F,
+    nboot = 100,
+    match.data = T,
+    verbose = T
+  )
+  
+  # performance & summary writing 
+  parameter_name = define_name(parameters_types, i) # parameter type in text
+  performance_cv = performance(cv_wapls) # write performance 
+  
+  model_settings = names(
+    performance_cv$crossval[,1][which.min(
+      performance_cv$crossval[,1])]) # pull model parameters
+  
+  # pull fitted values: best parameters
+  parameter1 = recon_wapls$fit[,model_settings]
+  
+  # bind fitted values for one parameter with others
   wapls = cbind(wapls, parameter1)
   colnames(wapls)[length(wapls)] = paste0(parameters_types[i], '.wapls')
-
-  parameter_name = define_name(parameters_types, i)
-  performance_cv = performance(cv_wapls)
-  model_settings = names(performance_cv[["crossval"]][,1][which.min(performance_cv[["crossval"]][,1])])
-  results = write_results_rioja(cv_wapls)
-  print(plot2(results, method, parameter_name, model_settings, i))
+  
+  results = write_results_rioja(cv_wapls) # write results
+  plots(results, method, parameter_name, model_settings, is.suppl = T) |> 
+    print()
 }
 ```
 
-Figures 3.1-3.8. Scatterplots for partial least squares (WAPLS) reconstruction, observed vs. fitted. Figures 3.1-3.4 are for climatic parameters, 3.5-3.8 for woody cover. The solid black line is regression line.
+Figures 3.1-3.8. Scatter plots for partial least squares (WAPLS) reconstruction, observed vs. fitted. Figures 3.1-3.4 are for climatic parameters, 3.5-3.8 for woody cover. The solid black line is regression line.
 
-### RF scatterplots
+### 4. RF scatter plots
 
 ```{r RF scatterplots, echo=FALSE, results='hide', fig.keep='all', out.width='50%', out.height='50%', warning=FALSE}
 condition = colSums(modern) != 0
 modern_rf = modern[, condition]
 
+# Column (taxa) names renaming for randomForest()
 names = c(1:length(modern))
 i = 0
 for (i in 1:length(names)) {
@@ -282,95 +289,147 @@ colnames(modern_rf) = names
 fossil_rf = fossil
 colnames(fossil_rf) = names
 
+# Variables meaning
+meaning = data.frame(names, colnames(modern))
+
+# 3. Transfer function ----
+# Transfer function evaluation using k-fold cross-validation. caret train()
+# method is being used. RF iterates three times in order to evaluate maxnodes,
+# ntree, and mtry RF parameters. Also performance results are being written
+# into text file
 i = 0
 rf = data.frame(ages)
-params_cv = trainControl(method = 'cv', number = 5, search = 'grid')
 method = 'RF'
+summary_rf = performance_summary(parameters_types) # for summary
 
+# CV parameters
+params_cv = trainControl(method = 'cv', number = 5, search = 'grid')
+
+# Cycle repeats for each reconstruction parameter
 for (i in 1:length(parameters_types)){
+  
+  # Data preparation
   parameter = pull(parameters_modern, var = parameters_types[i])
   dataset = cbind(parameter, modern_rf)
+  
+  # Grid for the first CV iteration
   grid = expand.grid(.mtry = c(1:20))
   
-  cv_rf_mtry = train(parameter~., data = dataset,
-                     method = 'rf',
-                     metric = 'Rsquared',
-                     tuneGrid = grid,
-                     trControl = params_cv, 
-                     importance = T,
-                     nodesize = 14,
-                     ntree = 300)
+  # First RF iterarion: the best mtry
+  cv_rf_mtry = train(
+    parameter ~ .,
+    data = dataset,
+    method = 'rf',
+    metric = 'Rsquared',
+    tuneGrid = grid,
+    trControl = params_cv,
+    importance = T,
+    nodesize = 14,
+    ntree = 300
+  )
   best_mtry = as.numeric(cv_rf_mtry$bestTune$mtry)
-
+  
+  # Second iteration: best maxnodes
+  # New search grid using new mtry value
   grid = expand.grid(.mtry = best_mtry)
   maxnodes_storage = list()
-  for (maxnodes in c(10:30)){
+  for (maxnodes in c(10:30)) {
     set.seed(1234)
-    cv_rf_maxnode = train(parameter~., data = dataset,
-                          method = 'rf',
-                          metric = 'Rsquared',
-                          tuneGrid = grid,
-                          trControl = params_cv, 
-                          importance = T,
-                          nodesize = 14,
-                          maxnodes = maxnodes,
-                          ntree = 300)
+    cv_rf_maxnode = train(
+      parameter ~ .,
+      data = dataset,
+      method = 'rf',
+      metric = 'Rsquared',
+      tuneGrid = grid,
+      trControl = params_cv,
+      importance = T,
+      nodesize = 14,
+      maxnodes = maxnodes,
+      ntree = 300
+    )
     current_iteration = toString(maxnodes)
     maxnodes_storage[[current_iteration]] = cv_rf_maxnode
   }
+  
+  # Writing the results 
   results_maxnodes = resamples(maxnodes_storage)
-  maxnodes_colname = colnames(results_maxnodes$values)[apply(results_maxnodes$values, 1, which.max)][1]
+  maxnodes_colname = colnames(
+    results_maxnodes$values)[apply(
+      results_maxnodes$values, 1, which.max)][1]
   best_maxnodes = as.numeric(substr(maxnodes_colname, 1, 2))
   
+  # Third iterarion: the best ntree
   ntree_storage = list()
   for (ntree in c(250, 300, 350, 400, 450, 500, 550, 600, 800, 1000, 2000)){
     set.seed(1234)
-    cv_rf_ntree = train(parameter~., data = dataset,
-                        method = 'rf',
-                        metric = 'Rsquared',
-                        tuneGrid = grid,
-                        trControl = params_cv, 
-                        importance = T,
-                        nodesize = 14,
-                        maxnodes = best_maxnodes,
-                        ntree = ntree)
+    cv_rf_ntree = train(
+      parameter ~ .,
+      data = dataset,
+      method = 'rf',
+      metric = 'Rsquared',
+      tuneGrid = grid,
+      trControl = params_cv,
+      importance = T,
+      nodesize = 14,
+      maxnodes = best_maxnodes,
+      ntree = ntree
+    )
     ntree_value = toString(ntree)
     ntree_storage[[ntree_value]] = cv_rf_ntree
   }
+  
+  # Writing the results 
   results_ntree = resamples(ntree_storage)
-  summary(results_ntree)
   values = results_ntree$values
   ntree_colname = colnames(values)[apply(values, 1, which.max)][1]
   best_ntree = as.numeric(substr(ntree_colname, 1, 3))
   
-  r2_rf = apply(values, 2, max)[colnames(values)[apply(values, 1, which.max)][1]] |> 
-    as.numeric() |> 
-    round(2)
+  # Returning R2 values
+  r2_flt = str_detect(colnames(values), 'Rsquared')
+  r2_rf = round(apply(values[r2_flt], 1, max)[1], 2)
   
+  # Returning RMSEP values
   rmsep_flt = str_detect(colnames(values), 'RMSE')
   rmsep_rf = round(apply(values[rmsep_flt], 1, min)[1], 2)
   
-  func_rf = train(parameter~., data = dataset,
-                   method = "rf",
-                   metric = "Rsquared",
-                   tuneGrid = grid,
-                   trControl = params_cv,
-                   importance = T,
-                   nodesize = 14,
-                   ntree = best_ntree,
-                   maxnodes = best_maxnodes)
+  # Final reconstruction
+  func_rf = train(
+    parameter ~ .,
+    data = dataset,
+    method = "rf",
+    metric = "Rsquared",
+    tuneGrid = grid,
+    trControl = params_cv,
+    importance = T,
+    nodesize = 14,
+    ntree = best_ntree,
+    maxnodes = best_maxnodes
+  )
   
+  # Reconstruction results 
   recon_rf = predict(func_rf, fossil_rf)
   rf = cbind(rf, recon_rf)
   colnames(rf)[length(rf)] = paste0(parameters_types[i], '.rf')
   parameter_name = define_name(parameters_types, i)
-  results = write_results_rf(func_rf)
   
-  print(plot2(results, method, parameter_name, paste0('ntree = ', best_ntree, ',
-                                                mtry = ', best_mtry,
-                                                ', maxnodes = ', best_maxnodes),
-        i))
+  # Scatter plots
+  results = write_results_rf(func_rf)
+  plots(
+    results,
+    method,
+    parameter_name,
+    paste0(
+      'ntree = ',
+      best_ntree,
+      ', mtry = ',
+      best_mtry,
+      ', maxnodes = ',
+      best_maxnodes
+    ),
+    is.suppl = T
+  ) |> 
+    print()
 }
 ```
 
-Figures 4.1-4.8. Scatterplots for Random Forest (RF) reconstruction, observed vs. fitted. Figures 4.1-4.4 are for climatic parameters, 4.5-4.8 for woody cover. The solid black line is regression line.
+Figures 4.1-4.8. Scatter plots for Random Forest (RF) reconstruction, observed vs. fitted. Figures 4.1-4.4 are for climatic parameters, 4.5-4.8 for woody cover. The solid black line is regression line.

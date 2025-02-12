@@ -1,37 +1,45 @@
 library('MKinfer')
+load('Temp12k_v1_0_0.RData')
 
 recon_plot_meteo = recon_plot |> 
   rename(YEAR = ages,
          param = type1,
          model = type2,
          value = fitted) |> 
-  select(-depth) |> 
-  filter(model == 'rf')
+  select(-depth)
 
 meteodata = readxl::read_xlsx('data/modern/tura_meteodata.xlsx') |> 
   mutate(round(across(-YEAR), 2)) |> 
-  rename(T_jan_meteo = JAN,
-         T_jul_meteo = JUL,
-         T_ann_meteo = MAAT,
-         P_ann_meteo = MAP) |> 
+  rename(T_jan = JAN,
+         T_jul = JUL,
+         T_ann = MAAT,
+         P_ann = MAP) |> 
   na.omit()
 
-meteodata_smooth = meteodata |> 
-  mutate(T_jan_meteo = 
-           predict(loess(T_jan_meteo ~ YEAR, meteodata, span = 0.25)),
-         T_jul_meteo = 
-           predict(loess(T_jul_meteo ~ YEAR, meteodata, span = 0.25)),
-         T_ann_meteo = 
-           predict(loess(T_ann_meteo ~ YEAR, meteodata, span = 0.25)),
-         P_ann_meteo = 
-           predict(loess(P_ann_meteo ~ YEAR, meteodata, span = 0.25)),
-         model = NA) |> 
-  pivot_longer(T_jan_meteo:P_ann_meteo,
+smooth = tibble(
+  YEAR = meteodata$YEAR,
+  T_jan =
+    predict(loess(T_jan ~ YEAR, meteodata, span = 0.25)),
+  T_jul =
+    predict(loess(T_jul ~ YEAR, meteodata, span = 0.25)),
+  T_ann =
+    predict(loess(T_ann ~ YEAR, meteodata, span = 0.25)),
+  P_ann =
+    predict(loess(P_ann ~ YEAR, meteodata, span = 0.25)),
+  model = 'loess'
+) |> 
+  pivot_longer(T_jan:P_ann,
                names_to = 'param',
-               values_to = 'value') |>
+               values_to = 'value')
+
+meteodata_smooth = meteodata |>
+  mutate(model = 'measured') |> 
+  pivot_longer(T_jan:P_ann,
+               names_to = 'param',
+               values_to = 'value') |> 
   rbind(recon_plot_meteo) |>
-  relocate(model, .after = last_col()) |> 
-  rbind(recon_plot_meteo)
+  rbind(smooth) |> 
+  relocate(model, .after = last_col())
 
 meteo_plot = ggplot(meteodata_smooth,
                     aes(x = value,
@@ -52,25 +60,32 @@ ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
        plot = meteo_plot, device = 'pdf', width = 2700, height = 1800,
        units = 'px')
 
-vert_plot = ggplot(recon_plot, aes(x = fitted,
-                                   y = ages,
-                                   color = type2,
-                                   group = type2)) +
-  geom_lineh(size = 0.3) +
-  facet_geochem_gridh(vars(type1),
-                      labeller = labeller(type1 = ordinary)) +
-  scale_y_continuous(breaks = seq(1880, 2020, 10)) +
-  labs(x = 'Reconstructed values',
-       y = 'Age (cal yr BP)') +
-  scale_color_discrete(name = 'Model',
-                       labels = c('MAT', 'RF', 'WA', 'WAPLS')) +
-  theme(legend.position = 'bottom') +
-  theme_paleo() +
-  rotated_axis_labels(45)
-vert_plot
+recons_corr = tibble(
+  YEAR = abs(recons$ages - 1950),
+  T_ann_rf = recons$T_ann.rf,
+  P_ann_rf = recons$P_ann.rf,
+) |> 
+  left_join(meteodata, by = 'YEAR') |> 
+  na.omit()
 
-boot.t.test(recons$T_ann.rf, meteodata$T_ann_meteo)
-boot.t.test(recons$P_ann.rf, meteodata$P_ann_meteo)
+boot.t.test(recons$T_ann.rf, meteodata$T_ann)
+boot.t.test(recons$P_ann.rf, meteodata$P_ann)
+
+meteodata_smooth |> 
+  filter(model == 'measured' | model == 'rf') |> 
+  filter(param == 'P_ann' | param == 'T_ann') |> 
+  ggplot(mapping = aes(x = param, y = value, fill = model)) +
+  geom_boxplot() +
+  facet_wrap(~param, scale = 'free') +
+  theme_paleo()
+
+boot.t.test(recons_corr$T_ann_rf, recons_corr$T_ann)
+boot.t.test(recons_corr$P_ann_rf, recons_corr$P_ann)
+
+cor.test(recons_corr$T_ann_rf, recons_corr$T_ann,
+         method = 'pearson')
+cor.test(recons_corr$P_ann_rf, recons_corr$P_ann,
+         method = 'pearson')
 
 meteodata_smooth |> 
   filter(param %in% c('T_ann', 'T_ann_meteo')) |> 
@@ -78,7 +93,7 @@ meteodata_smooth |>
   geom_density() +
   labs(x = 'MAAT, °C',
        y = 'Kernel density estimation') +
-  scale_color_discrete(name = 'MAAT',
+  scale_color_discrete(name = 'Tann',
                        labels = c('Reconstructed', 'Measured')) +
   theme_paleo() +
   theme(legend.position = 'bottom')
@@ -93,7 +108,7 @@ meteodata_smooth |>
   geom_density() +
   labs(x = 'MAP, mm/yr',
        y = 'Kernel density estimation') +
-  scale_color_discrete(name = 'MAP',
+  scale_color_discrete(name = 'Pann',
                        labels = c('Reconstructed', 'Measured')) +
   theme_paleo() +
   theme(legend.position = 'bottom')
