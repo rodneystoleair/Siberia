@@ -1,5 +1,5 @@
 ## This script provides data for the training (modern) and the prediction
-## (fossil) sets from NeotomaDB or from .xlsx sheets,
+## (fossil) from .xlsx sheets,
 ## as well as present data for the palaeoenvironmental reconstructions. Also
 ## the script does preparation of loaded tables.
 ## Provided scripts are written to perform reconstructions for multiple
@@ -82,5 +82,3 @@ modern = modern |>
 # Data frame creation for final reconstructions. They will be bound to each
 # other in the ends of reconstructions.
 recons = data.frame(depth)
-
-# 2.2. Loading from NeotomaDB

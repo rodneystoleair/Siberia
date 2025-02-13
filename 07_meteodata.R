@@ -1,5 +1,4 @@
 library('MKinfer')
-load('Temp12k_v1_0_0.RData')
 
 recon_plot_meteo = recon_plot |> 
   rename(YEAR = ages,

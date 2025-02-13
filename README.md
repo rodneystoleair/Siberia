@@ -1,45 +1,56 @@
 <!-- badges: start -->
+
 WIP
+
 <!-- badges: end -->
 
 # Siberia
+
 ## Siberia Reconstruction Scripts
 
-This repository is a supplementary material for:
-*Andreev R.A., Novenko E.Yu. (2024) ...*
+This repository is a supplementary material for: *Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques*
 
-This RStudio Project provide a continuous workflow for reconstructions, given in ... All of them should be compiled one by one and ran completely. Scripts return:
+This RStudio Project provide a continuous workflow for reconstructions, given in the research paper. All of them should be compiled one by one and ran completely. Scripts return:
 
-* code outputs (output/performance)
- 
-* transfer functions performance metrics and p-values (by [palaeoSig](https://github.com/richardjtelford/palaeoSig)) in environment as 	"summary" table as well as in nice table format (output/summary)
- 
-* scatterplots: fitted&observed, fitted&residuals for each model (plots)
- 
-* correlation matrices between reconstructions (plots)
+-   code outputs (output/performance)
 
-* nice summary tables
+-   transfer functions performance metrics and p-values (by [palaeoSig](https://github.com/richardjtelford/palaeoSig)) in environment as "summary" table as well as in nice table format (output/summary)
+
+-   scatterplots: fitted&observed, fitted&residuals for each model (plots), scree plots for Modern Analogue Technique k number of analogues
+
+-   correlation matrices between reconstructions (plots)
 
 ## Code Contributor:
 
-Rodion Andreev [dorionio40@gmail.com](mailto:dorionio40@gmail.com)
+Rodion Andreev [dorionio40\@gmail.com](mailto:dorionio40@gmail.com)
 
-* [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0443--9849-brightgreen)](https://orcid.org/0000-0003-0443-9849)
-* ![Static Badge](https://img.shields.io/badge/%D0%98%D0%A1%D0%A2%D0%98%D0%9D%D0%90-239760642-orange?link=https%3A%2F%2Fistina.msu.ru%2Fworkers%2F239760642%2F)
+-   [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0443--9849-brightgreen)](https://orcid.org/0000-0003-0443-9849)
 
 ## How to use:
 
 Two options:
 
-1. Start a RStudio project and compile scripts one by one. We recommend to compile them completely.
+-   Start a RStudio project and compile scripts one by one. We recommend to compile them completely.
 
-2. Uncomment a "setwd(..." line in 01_data_loading.R, add your path and compile scripts one by one
+-   Uncomment a "setwd(..." line in 01_data_loading.R, add your path and compile scripts one by one.
+
+    For now, repository works with given data, original data from the paper is not yet provided (except for EMPD2 modern pollen samples). In order to use with custom data, you should load it as Excel sheets (.xlsx) in directories:
+
+1.  **Fossil data**: `data/fossil/fossil_%object_name%.xlsx`
+2.  **Chronology**: `data/fossil/ages_%object_name%.xlsx`
+3.  **Modern training set**: `data/modern/modern.xlsx`
+4.  **Ecological parameters (e.g. climate) for training set samples**: `data/parameters/climate.xlsx`
+5.  **Meteorological data for comparison**: store it in `data/modern/`
+
+You can find examples of table formatting in corresponding directories.
 
 ## How to cite:
 
-WIP
+The paper is being under submission.
 
-## System requirements:
+*Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques. (submitted)*
+
+## System preferences:
 
 This project was run on R version 4.3.3 (2024-02-29)
 
@@ -49,7 +60,7 @@ Running under: macOS Sonoma 14.5
 
 ### List of packages we used
 
-```r
+``` r
  [1] tidypaleo_0.1.3    lubridate_1.9.3    forcats_1.0.0      stringr_1.5.1     
  [5] dplyr_1.1.4        purrr_1.0.2        readr_2.1.5        tidyr_1.3.1       
  [9] tibble_3.2.1       tidyverse_2.0.0    ggcorrplot_0.1.4.1 ggplot2_3.5.0
