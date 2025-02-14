@@ -8,17 +8,22 @@
 # ordinary and woody. If you want to add some more, you need to write their
 # full names for plots :)
 
-# 1. Dependencies ----
+# 0. Dependencies ----
 # Packages loading
 library('ggcorrplot')
 library('flextable')
 library('tidyverse')
 library('tidypaleo')
+source('R/plotting_functions.R')
+source('R/summary_functions.R')
 
+# 1. Data loading ----
+## Loading the data frame with reconstructions 
 recons = readxl::read_xlsx(paste0('output/reconstructed/', name,
                                   '_climate.xlsx')) |> 
   mutate(depth = as.character(depth))
 
+## If you need to load new ages
 median = read_delim('data/fossil/NizhnyayaTunguska_52_ages.txt') |> 
   select(depth, median) |> 
   mutate(depth = as.character(depth))
@@ -132,45 +137,13 @@ ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
 recons_corr = recons |> 
   select(-depth, -ages)
 
-param_corr = function(recons_data, parameter, method) {
-  if (parameter != 'km5') {
-  corr_data = recons_data |> 
-    select(contains(parameter))
-  } else if (parameter == 'km5') {
-    corr_data = recons_data |> 
-      select(contains('km5')) |> 
-      select(-contains('km50'))
-  }
-  corr = round(cor(corr_data, method = method), 2)
-  pvalue = cor_pmat(corr)
-  plot = ggcorrplot(corr, hc.order = T, type = 'lower', p.mat = pvalue,
-                    legend.title = 'Spearman rho', insig = 'pch')
-  ggsave(paste0(parameter, '_', method,
-                '_corr.svg'),
-         path = 'plots/corr/',
-         width = 1600,
-         height = 1200,
-         units = 'px')
-  return(plot)
-}
-
 i = 0
 method = 'spearman'
 for (i in 1:length(parameters_types)){
   param_corr(recons_corr, parameters_types[i], method)
 }
 
-# Summary table formatting
-
-summary_to_table = function(summary){
-  table = summary |> 
-    lapply(as.data.frame) |> 
-    bind_rows() |> 
-    mutate(variable = names(summary_rf)) |> 
-    relocate(variable)
-  return(table)
-}
-
+# 5. Summary table formatting and saving ---- 
 summary_mat2 = summary_mat |> 
   summary_to_table()
 
@@ -196,6 +169,7 @@ summary = summary |>
 
 table = summary
 
+# Table visualization. Not completed
 flex_table = as_flextable(summary)
 flex_table = bold(flex_table, ~ p.value <= 0.1, ~ p.value, bold = TRUE)
 flex_table

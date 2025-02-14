@@ -227,3 +227,32 @@ screeplots = function(dataset, method_name, param_name){
          height = 1200,
          units = 'px')
 }
+
+# params_corr ----
+# written by : Rodion Andreev
+# purpose    : generate correlation matricies and save them as .svg
+# params     : recons_data -- a data frame with reconstructed values
+# parameter -- reconstructed parameter name to correlate
+# method -- model type (MAT, WA etc)
+
+param_corr = function(recons_data, parameter, method) {
+  if (parameter != 'km5') {
+    corr_data = recons_data |> 
+      select(contains(parameter))
+  } else if (parameter == 'km5') {
+    corr_data = recons_data |> 
+      select(contains('km5')) |> 
+      select(-contains('km50'))
+  }
+  corr = round(cor(corr_data, method = method), 2)
+  pvalue = cor_pmat(corr)
+  plot = ggcorrplot(corr, hc.order = T, type = 'lower', p.mat = pvalue,
+                    legend.title = 'Spearman rho', insig = 'pch')
+  ggsave(paste0(parameter, '_', method,
+                '_corr.svg'),
+         path = 'plots/corr/',
+         width = 1600,
+         height = 1200,
+         units = 'px')
+  return(plot)
+}

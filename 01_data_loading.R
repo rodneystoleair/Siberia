@@ -4,6 +4,12 @@
 ## the script does preparation of loaded tables.
 ## Provided scripts are written to perform reconstructions for multiple
 ## cores and environmental parameters.
+## Excel sheets names containing data should follow this format:
+## Fossil data: 'fossil_%core_name%.xlsx'
+## Chronology: 'ages_%core_name%.xlsx'
+## Training set: 'modern.xlsx'
+## Reconstruction parameters, e.g. climate: 'climate.xlsx'
+## But you are free to change these names by code re-writing.
 
 # 0. Starting: if you're not using a RStudio project
 # setwd('.../Siberia reconstruction/')
@@ -46,7 +52,10 @@ climate = read_excel('data/parameters/climate.xlsx',
                      col_types = c('text', rep('numeric', 4))) |> 
   arrange(points)
 
-# Biome selection
+## Biome selection, specific for data used in paper, because biome data of our 
+## training set locates with modern woody cover data (cover.xlsx).
+## Everything specific for paper data and unnecessarily used for a custom data 
+## is marked with doubled hash tag.
 modern = left_join(modern,
                    cover,
                    by = 'points') |>
@@ -55,15 +64,16 @@ modern = left_join(modern,
   select(-type2)
 cover = select(cover, -type1:-type2)
 
-# Column names switch
+## Column names switch
 row.names(modern) = modern$points
 row.names(fossil) = fossil$variable
 colnames(fossil) = colnames(modern)
 
-# parameters_modern = semi_join(climate, modern, by = 'points') |>
-#   inner_join(cover) |>
-#   select(-km50, -km10, -km20, -km5)
+## parameters_modern = semi_join(climate, modern, by = 'points') |>
+##   inner_join(cover) |>
+##  select(-km50, -km10, -km20, -km5)
 
+## Params join
 parameters_modern = semi_join(climate, modern, by = 'points') |>
   inner_join(cover) |>
   select(points, km50, km20, km10, km5)
@@ -73,12 +83,12 @@ parameters_types = colnames(parameters_modern)[-1]
 fossil = select(fossil, -points)
 modern = select(modern, -points)
 
-# Excluding unnecessary taxa
+# Excluding unnecessary taxa. You can select them. 
 fossil = fossil |> 
   select(-`Menuanthes trifoliata`, -`Cyperaceae`)
 modern = modern |> 
   select(-`Menuanthes trifoliata`, -`Cyperaceae`)
 
-# Data frame creation for final reconstructions. They will be bound to each
-# other in the ends of reconstructions.
+# Data frame creation for final reconstructions. They will be bounded to each
+# other in the end of work.
 recons = data.frame(depth)

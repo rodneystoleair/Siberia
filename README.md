@@ -2,27 +2,31 @@
 
 WIP
 
+This repository is a supplementary material for: *Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques*
+
 <!-- badges: end -->
 
 # Siberia
 
-## Siberia Reconstruction Scripts
+## Quantitative palaeocological reconstructions
 
-This repository is a supplementary material for: *Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques*
+This RStudio project provides a workflow for reconstruction performance, as given in the research paper. All of them should be compiled one by one and run completely.
 
-This RStudio Project provide a continuous workflow for reconstructions, given in the research paper. All of them should be compiled one by one and ran completely. Scripts return:
+Scripts return:
 
 -   code outputs (output/performance)
 
--   transfer functions performance metrics and p-values (by [palaeoSig](https://github.com/richardjtelford/palaeoSig)) in environment as "summary" table as well as in nice table format (output/summary)
+-   performance metrics of transfer functions, and p-values (by [palaeoSig](https://github.com/richardjtelford/palaeoSig)) in the environment as a "summary" table
 
--   scatterplots: fitted&observed, fitted&residuals for each model (plots), scree plots for Modern Analogue Technique k number of analogues
+-   scatter plots: fitted & observed, fitted & residuals for each model (plots), scree plots for the Modern Analogue Technique k number of analogues
 
 -   correlation matrices between reconstructions (plots)
 
 ## Code Contributor:
 
-Rodion Andreev [dorionio40\@gmail.com](mailto:dorionio40@gmail.com)
+Rodion Andreev
+
+[dorionio40\@gmail.com](mailto:dorionio40@gmail.com)
 
 -   [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0443--9849-brightgreen)](https://orcid.org/0000-0003-0443-9849)
 
@@ -30,11 +34,11 @@ Rodion Andreev [dorionio40\@gmail.com](mailto:dorionio40@gmail.com)
 
 Two options:
 
--   Start a RStudio project and compile scripts one by one. We recommend to compile them completely.
+-   Start a RStudio project and compile scripts one by one. We recommend compiling them completely.
 
 -   Uncomment a "setwd(..." line in 01_data_loading.R, add your path and compile scripts one by one.
 
-    For now, repository works with given data, original data from the paper is not yet provided (except for EMPD2 modern pollen samples). In order to use with custom data, you should load it as Excel sheets (.xlsx) in directories:
+    For now, the repository works with the given data, original data from the paper is not yet provided (except for EMPD2 modern pollen samples). In order to use it with custom data, you should load it as Excel sheets (.xlsx) in directories:
 
 1.  **Fossil data**: `data/fossil/fossil_%object_name%.xlsx`
 2.  **Chronology**: `data/fossil/ages_%object_name%.xlsx`
@@ -42,13 +46,13 @@ Two options:
 4.  **Ecological parameters (e.g. climate) for training set samples**: `data/parameters/climate.xlsx`
 5.  **Meteorological data for comparison**: store it in `data/modern/`
 
-You can find examples of table formatting in corresponding directories.
+You can find examples of table formatting in the corresponding directories.
 
 ## How to cite:
 
-The paper is being under submission.
+**The paper is under submission.**
 
-*Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques. (submitted)*
+*Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques*
 
 ## System preferences:
 
