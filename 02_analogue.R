@@ -88,7 +88,7 @@ for (i in 1:length(parameters_types)){
 # 4. Analogue quality assessment (by R.J. Telford) ----
 n_analogs = minDC(recon_mat)$minDC
 goodpoorbad = quantile(paldist(modern_mat), prob = c(0.05, 0.1))
-plot(ages, n_analogs, ylab = "Squared chord distance", xlab = "Cal yr BP")
+plot(depth, n_analogs, ylab = "Squared chord distance", xlab = "Depth, cm")
 abline(h = goodpoorbad, col = c("orange", "red"))
 
 # append the final result with others

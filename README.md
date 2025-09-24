@@ -1,8 +1,8 @@
 <!-- badges: start -->
 
-WIP
+This repository is a supplementary material for: R. Andreev, E. Novenko. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques
 
-This repository is a supplementary material for: *Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques*
+[![](https://img.shields.io/badge/DOI-10.1016%2Fj.quaint.2025.109879-green)](https://doi.org/10.1016/j.quaint.2025.109879)
 
 <!-- badges: end -->
 
@@ -22,7 +22,7 @@ Scripts return:
 
 -   correlation matrices between reconstructions (plots)
 
-## Code Contributor:
+## Code Contributor
 
 Rodion Andreev
 
@@ -30,7 +30,7 @@ Rodion Andreev
 
 -   [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0443--9849-brightgreen)](https://orcid.org/0000-0003-0443-9849)
 
-## How to use:
+## How to use
 
 Two options:
 
@@ -48,24 +48,18 @@ Two options:
 
 You can find examples of table formatting in the corresponding directories.
 
-## How to cite:
+## How to cite
 
-**The paper is under submission.**
+R. Andreev, E. Novenko. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques. Quaternary International, Volume 739, 2025, 109879. <https://doi.org/10.1016/j.quaint.2025.109879>
 
-*Andreev R., Novenko E., 2025. Quantitative pollen-based reconstructions of climate characteristics and forest coverage for Northern Central Siberia: evaluation of different techniques*
+## Acknowledgements
 
-## System preferences:
+The studies were supported by grant of the Ministry of Science and Higher Education of Russian Federation (agreement № 075-15-2024-554 of April 24, 2024).
 
-This project was run on R version 4.3.3 (2024-02-29)
+## System preferences
+
+This project was run on R version 4.5.1
 
 Platform: x86_64-apple-darwin20 (64-bit)
 
 Running under: macOS Sonoma 14.5
-
-### List of packages we used
-
-``` r
- [1] tidypaleo_0.1.3    lubridate_1.9.3    forcats_1.0.0      stringr_1.5.1     
- [5] dplyr_1.1.4        purrr_1.0.2        readr_2.1.5        tidyr_1.3.1       
- [9] tibble_3.2.1       tidyverse_2.0.0    ggcorrplot_0.1.4.1 ggplot2_3.5.0
-```

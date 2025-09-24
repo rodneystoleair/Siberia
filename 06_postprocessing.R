@@ -20,7 +20,7 @@ source('R/summary_functions.R')
 # 1. Data loading ----
 ## Loading the data frame with reconstructions 
 recons = readxl::read_xlsx(paste0('output/reconstructed/', name,
-                                  '_climate.xlsx')) |> 
+                                  '_woody.xlsx')) |> 
   mutate(depth = as.character(depth))
 
 ## If you need to load new ages
@@ -42,9 +42,9 @@ recon_plot = recons |>
   pivot_longer(contains(c('mat', 'wa', 'wapls', 'rf')), names_to = 'type', 
                values_to = 'fitted') |> 
   transform(depth = as.numeric(depth)) |> 
-  transform(ages = abs(as.numeric(ages) - 1950)) |> 
-  separate(type, into = c('type1', 'type2'), sep = '\\.')  # separate types
-  # mutate(type1 = fct_relevel(type1, c('km50', 'km20', 'km10', 'km5')))
+  transform(ages = abs(as.numeric(ages))) |> 
+  separate(type, into = c('type1', 'type2'), sep = '\\.') |> # separate types
+  mutate(type1 = fct_relevel(type1, c('km50', 'km20', 'km10', 'km5')))
 
 ordinary = c(
   'T_jan' = 'Tjan, °C',
@@ -58,6 +58,14 @@ woody = c(
   'km20' = '20 km',
   'km10' = '10 km',
   'km5' = '5 km')
+
+age_breaks = c(seq(0, 8000, 500))
+depth_breaks = c(seq(0, 220, 20))
+
+adm_data = tibble(depth = as.numeric(recons$depth), age = recons$ages)
+adm = age_depth_model(adm_data,
+                      depth = depth,
+                      age = age)
 
 # 3. Plotting ----
 ## 3.1. Stratigraphical horizontal plot ----
@@ -81,22 +89,22 @@ ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
 
 ## 3.2. Stratigraphical vertical plot ----
 vert_plot = ggplot(recon_plot, aes(x = fitted,
-                       y = ages,
+                       y = depth,
                        color = type2,
                        group = type2)) +
   geom_lineh(size = 0.3) +
-  # geom_vline(aes(xintercept = xintercept),
-  #            data = tibble(type1 = 'km50', xintercept = 0.96),
-  #            linetype = 6, size = 0.4, color = 'red') +
-  # geom_vline(aes(xintercept = xintercept),
-  #            data = tibble(type1 = 'km20', xintercept = 0.94),
-  #            linetype = 6, size = 0.4, color = 'red') +
-  # geom_vline(aes(xintercept = xintercept),
-  #            data = tibble(type1 = 'km10', xintercept = 0.95),
-  #            linetype = 6, size = 0.4, color = 'red') +
-  # geom_vline(aes(xintercept = xintercept),
-  #            data = tibble(type1 = 'km5', xintercept = 0.94),
-  #            linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'km50', xintercept = 0.96),
+             linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'km20', xintercept = 0.94),
+             linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'km10', xintercept = 0.95),
+             linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'km5', xintercept = 0.94),
+             linetype = 6, size = 0.4, color = 'red') +
   # geom_vline(aes(xintercept = xintercept),
   #            data = tibble(type1 = 'P_ann', xintercept = 373),
   #            linetype = 6, size = 0.4, color = 'red') +
@@ -109,17 +117,17 @@ vert_plot = ggplot(recon_plot, aes(x = fitted,
   # geom_vline(aes(xintercept = xintercept),
   #            data = tibble(type1 = 'T_jan', xintercept = -36.2),
   #             linetype = 6, size = 0.4, color = 'red') +
-  # scale_y_reverse()  +
+  scale_y_reverse()  +
   facet_geochem_gridh(vars(type1),
                       labeller = labeller(type1 = woody)) +
   labs(x = 'Reconstructed values',
-       y = 'Age (cal yr BP)') +
+       y = 'Depth') +
   scale_color_discrete(name = 'Model',
                        labels = c('MAT', 'RF', 'WA', 'WAPLS')) +
-  scale_y_continuous(breaks = seq(1890, 2020, 10)) +
   theme(legend.position = 'bottom') +
   theme_paleo() +
-  rotated_axis_labels(45)
+  rotated_axis_labels(45) +
+  scale_y_depth_age(adm, age_name = 'Age (cal yr BP)', age_breaks = age_breaks)
 vert_plot
 
 # age_model = age_depth_model(depth = recon_plot$depth,
@@ -129,9 +137,20 @@ vert_plot
 #   scale_y_age_depth(age_model, depth_name = 'Depth, cm')
 
 ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
-              'reconstructions_woody.pdf'),
+              'reconstructions_woody_depth.pdf'),
        plot = vert_plot, device = 'pdf', width = 2700, height = 1800,
        units = 'px')
+
+ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
+              'reconstructions_woody_depth.png'),
+       plot = vert_plot, device = 'png', width = 2700, height = 1800,
+       units = 'px')
+
+ggsave(paste0('plots/reconstructions/', paste0(name, '_'),
+              'reconstructions_woody_depth.svg'),
+       plot = vert_plot, device = 'svg', width = 2700, height = 1800,
+       units = 'px')
+
 
 # 4. Correlation analysis between reconstructed values ----
 recons_corr = recons |> 
@@ -170,9 +189,9 @@ summary = summary |>
 table = summary
 
 # Table visualization. Not completed
-flex_table = as_flextable(summary)
-flex_table = bold(flex_table, ~ p.value <= 0.1, ~ p.value, bold = TRUE)
-flex_table
+# flex_table = as_flextable(summary)
+# flex_table = bold(flex_table, ~ p.value <= 0.1, ~ p.value, bold = TRUE)
+# flex_table
 
 writexl::write_xlsx(summary, paste0('output/summary/', paste0(name, '_'),
-                                    'summary_woody.xlsx'))
+                                    'summary_climate.xlsx'))

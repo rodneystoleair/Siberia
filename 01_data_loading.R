@@ -15,7 +15,6 @@
 # setwd('.../Siberia reconstruction/')
 
 # 1. Dependencies ----
-# Packages loading
 library('readxl')
 library('writexl')
 library('tidyverse')
@@ -69,9 +68,9 @@ row.names(modern) = modern$points
 row.names(fossil) = fossil$variable
 colnames(fossil) = colnames(modern)
 
-## parameters_modern = semi_join(climate, modern, by = 'points') |>
-##   inner_join(cover) |>
-##  select(-km50, -km10, -km20, -km5)
+# parameters_modern = semi_join(climate, modern, by = 'points') |>
+#   inner_join(cover) |>
+#  select(-km50, -km10, -km20, -km5)
 
 ## Params join
 parameters_modern = semi_join(climate, modern, by = 'points') |>
