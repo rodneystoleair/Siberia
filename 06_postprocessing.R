@@ -59,7 +59,19 @@ vert_plot = ggplot(recon_plot, aes(x = fitted,
   theme(legend.position = 'bottom') +
   theme_paleo() +
   rotated_axis_labels(45) +
-  scale_y_depth_age(adm, age_name = 'Age (cal yr BP)', age_breaks = age_breaks)
+  scale_y_depth_age(adm, age_name = 'Age (cal yr BP)', age_breaks = age_breaks) +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'P_ann', xintercept = 516),
+             linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'T_ann', xintercept = -8.1),
+             linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'T_jul', xintercept = 15.3),
+             linetype = 6, size = 0.4, color = 'red') +
+  geom_vline(aes(xintercept = xintercept),
+             data = tibble(type1 = 'T_jan', xintercept = -27.7),
+              linetype = 6, size = 0.4, color = 'red')
 vert_plot
 
 # age_model = age_depth_model(depth = recon_plot$depth,
