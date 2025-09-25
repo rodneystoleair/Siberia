@@ -18,6 +18,7 @@
 library('readxl')
 library('writexl')
 library('tidyverse')
+source('R/loading_functions.R')
 
 # 2. Data loading ---- 
 # 2.1. Loading from xlsx-sheets
