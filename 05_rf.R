@@ -38,7 +38,7 @@ meaning = data.frame(names, colnames(modern))
 # ntree, and mtry RF parameters. Also performance results are being written
 # into text file
 i = 0
-rf = data.frame(ages)
+rf = data.frame(ages$depth)
 method = 'RF'
 summary_rf = performance_summary(parameters_types) # for summary
 
@@ -214,7 +214,3 @@ for (i in 1:length(parameters_types)){
 # append the final result with others
 rf = rf[,-1]
 recons = cbind(recons, rf)
-
-# write reconstructions into sheet
-writexl::write_xlsx(recons, paste0('output/reconstructed/', name,
-                                   '_woody.xlsx'))

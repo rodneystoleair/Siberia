@@ -22,7 +22,7 @@ modern_wa = modern[, condition]
 # Transfer function & cross-validation. Cycle repeats for every reconstruction
 # parameter. Also performance results are being written into text file
 i = 0 # increment
-wa = data.frame(ages)
+wa = data.frame(ages$depth)
 summary_wa = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){
@@ -110,5 +110,5 @@ for (i in 1:length(parameters_types)){
 
 # append the final result with others
 wa = wa |> 
-  select(-ages)
+  select(-age)
 recons = cbind(recons, wa)

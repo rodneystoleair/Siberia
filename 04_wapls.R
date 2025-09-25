@@ -22,7 +22,7 @@ modern_wapls = modern[, condition]
 # Transfer function & cross-validation. Cycle repeats for every reconstruction
 # parameter. Also performance results are being written into text file
 i = 0 # increment
-wapls = data.frame(ages)
+wapls = data.frame(ages$depth)
 summary_wapls = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){
@@ -105,6 +105,4 @@ for (i in 1:length(parameters_types)){
 }
 
 # append the final result with others
-wapls = wapls |> 
-  select(-ages)
 recons = cbind(recons, wapls)

@@ -26,7 +26,7 @@ fossil_mat = dat$fossil / 100
 # Transfer function & cross-validation. Cycle repeats for every reconstruction
 # parameter. Also performance results are being written into text file
 i = 0 # Increment
-mat = data.frame(ages)
+mat = data.frame(ages$depth)
 summary_mat = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){
@@ -88,7 +88,7 @@ for (i in 1:length(parameters_types)){
 # 4. Analogue quality assessment (by R.J. Telford) ----
 n_analogs = minDC(recon_mat)$minDC
 goodpoorbad = quantile(paldist(modern_mat), prob = c(0.05, 0.1))
-plot(depth, n_analogs, ylab = "Squared chord distance", xlab = "Depth, cm")
+plot(ages$depth, n_analogs, ylab = "Squared chord distance", xlab = "Depth, cm")
 abline(h = goodpoorbad, col = c("orange", "red"))
 
 # append the final result with others

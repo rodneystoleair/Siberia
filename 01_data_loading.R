@@ -24,6 +24,8 @@ source('R/loading_functions.R')
 # Левковская Г.В., Кинд Н.В., Завельский Ф.С., Форова В.С.
 # Абсолютный возраст торфяников района г. Игарка и расчленение голоцена Западной
 # Сибири // Бюллетень Комиссии по изучению четвертичного периода № 39. 1970. 
+name = 'Igarka'
+
 fossil = neotoma2::get_sites(sitename = 'Igarka Peat Exposure') |>
   neotoma2::get_downloads() |>
   neotoma2::samples() |>
@@ -70,7 +72,7 @@ fossil = fossil |> select(-depth)
 
 # Parameters
 # Climate
-parameters_modern = read_excel('data/modern/climate_empd.xlsx') |>
+parameters_modern = read_excel('data/parameters/climate_empd.xlsx') |>
   as.data.frame() |>
   arrange(points)
 
@@ -78,4 +80,4 @@ parameters_types = colnames(parameters_modern)[-1] # excluding points
 
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.
-recons = tibble(depth = ages$depth)
+recons = tibble(age = ages$age)
