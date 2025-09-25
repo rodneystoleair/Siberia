@@ -91,3 +91,13 @@ modern = modern |>
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.
 recons = data.frame(depth)
+
+igarka_GMLevkovskaya = neotoma2::get_sites(sitename = 'Igarka Peat Exposure') |>
+  neotoma2::get_downloads() |>
+  neotoma2::samples() |>
+  select(age, units, value, variablename, depth) |>
+  pivot_wider(names_from = variablename,
+              values_from = value) |> 
+  remove_na() |> 
+  # turn all NA values to 0
+  mutate(across(where(is.numeric), ~replace_na(., 0)))
