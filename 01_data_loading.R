@@ -38,7 +38,8 @@ fossil = neotoma2::get_sites(sitename = 'Igarka Peat Exposure') |>
   rename(`Betula sect. Albae` = `Betulaceae undiff.`,
          `Abies sibirica` = Abies) |> 
   # Arrange columns alphabetically except depth
-  select(depth, sort(tidyselect::peek_vars()))
+  select(depth, sort(tidyselect::peek_vars())) |> 
+  as.data.frame()
 
 # Ages
 ages = fossil |> 
@@ -49,7 +50,7 @@ fossil = fossil |>
 
 # Modern data (training set)
 modern = read_excel('data/modern/modern_empd_example.xlsx') |>
-  as_tibble() |>
+  as.data.frame() |>
   arrange(points)
 
 # Filtering taxa by the taxa list
@@ -62,11 +63,18 @@ fossil = fossil |>
 modern = modern |> 
   select(points, all_of(taxa_list))
 
+row.names(modern) = modern$points
+modern = modern |> select(-points)
+row.names(fossil) = fossil$depth
+fossil = fossil |> select(-depth)
+
 # Parameters
 # Climate
-parameters_modern = read_excel('data/modern/modern_empd_example.xlsx') |>
-  as_tibble() |>
+parameters_modern = read_excel('data/modern/climate_empd.xlsx') |>
+  as.data.frame() |>
   arrange(points)
+
+parameters_types = colnames(parameters_modern)[-1] # excluding points
 
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.
