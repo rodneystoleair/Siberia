@@ -26,7 +26,7 @@ fossil_mat = dat$fossil / 100
 # Transfer function & cross-validation. Cycle repeats for every reconstruction
 # parameter. Also performance results are being written into text file
 i = 0 # Increment
-mat = data.frame(ages$depth)
+mat = tibble(age = ages$age)
 summary_mat = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){

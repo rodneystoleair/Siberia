@@ -22,7 +22,7 @@ modern_wa = modern[, condition]
 # Transfer function & cross-validation. Cycle repeats for every reconstruction
 # parameter. Also performance results are being written into text file
 i = 0 # increment
-wa = data.frame(ages$depth)
+wa = tibble(age = ages$age)
 summary_wa = performance_summary(parameters_types) # for summary
 
 for (i in 1:length(parameters_types)){

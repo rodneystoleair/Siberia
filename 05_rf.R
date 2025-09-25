@@ -38,7 +38,7 @@ meaning = data.frame(names, colnames(modern))
 # ntree, and mtry RF parameters. Also performance results are being written
 # into text file
 i = 0
-rf = data.frame(ages$depth)
+rf = tibble(age = ages$age)
 method = 'RF'
 summary_rf = performance_summary(parameters_types) # for summary
 

@@ -80,4 +80,4 @@ parameters_types = colnames(parameters_modern)[-1] # excluding points
 
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.
-recons = tibble(age = ages$age)
+recons = tibble(depth = ages$depth)
