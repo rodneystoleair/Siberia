@@ -39,7 +39,7 @@ for (i in 1:length(parameters_types)){
                  method = "SQchord") 
   
   # bootstrap cross-validation
-  cv_mat = bootstrap(func_mat, n.boot = 100)
+  cv_mat = bootstrap(func_mat, n.boot = 1000)
   
   # prediction on newdata
   recon_mat = predict(func_mat, fossil_mat, k = getK(cv_mat))
