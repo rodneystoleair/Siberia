@@ -11,52 +11,63 @@
 ## Reconstruction parameters, e.g. climate: 'climate.xlsx'
 ## But you are free to change these names by code re-writing.
 
-# 0. Starting: if you're not using a RStudio project
-# setwd('.../Siberia reconstruction/')
-
 # 1. Dependencies ----
 library('readxl')
 library('writexl')
 library('tidyverse')
+source('R/loading_functions.R')
 
 # 2. Data loading ---- 
 # 2.1. Loading from xlsx-sheets
+
+# Fossil data: Igarka Peat Exposure from Neotoma
+# Левковская Г.В., Кинд Н.В., Завельский Ф.С., Форова В.С.
+# Абсолютный возраст торфяников района г. Игарка и расчленение голоцена Западной
+# Сибири // Бюллетень Комиссии по изучению четвертичного периода № 39. 1970. 
+fossil = neotoma2::get_sites(sitename = 'Igarka Peat Exposure') |>
+  neotoma2::get_downloads() |>
+  neotoma2::samples() |>
+  select(age, value, variablename, depth) |>
+  pivot_wider(names_from = variablename,
+              values_from = value) |> 
+  remove_na() |> 
+  # turn all NA values to 0
+  mutate(across(where(is.numeric), ~replace_na(., 0))) |> 
+  mutate(Pinus = `Pinus sylvestris` + `Pinus sibirica`) |> 
+  select(-`Pinus sylvestris`, -`Pinus sibirica`) |> 
+  rename(`Betula sect. Albae` = `Betulaceae undiff.`,
+         `Abies sibirica` = Abies) |> 
+  # Arrange columns alphabetically except depth
+  select(depth, sort(tidyselect::peek_vars()))
+
+# Ages
+ages = fossil |> 
+  select(depth, age) |>
+  arrange(depth)
+fossil = fossil |> 
+  select(-age)
 
 # Modern data (training set)
 modern = read_excel('data/modern/modern_empd_example.xlsx') |>
   as_tibble() |>
   arrange(points)
 
+# Filtering taxa by the taxa list
+taxa_list = c('Abies sibirica', 'Alnus', 'Artemisia', 'Betula sect. Albae',
+              'Cyperaceae', 'Ericaceae', 'Larix', 'Picea', 'Pinus', 'Poaceae',
+              'Salix')
+
+fossil = fossil |> 
+  select(depth, all_of(taxa_list))
+modern = modern |> 
+  select(points, all_of(taxa_list))
+
 # Parameters
 # Climate
-climate = read_excel('data/parameters/climate_empd.xlsx') |> 
-  as_tibble() |> 
+parameters_modern = read_excel('data/modern/modern_empd_example.xlsx') |>
+  as_tibble() |>
   arrange(points)
-
-## Params join
-parameters_modern = semi_join(climate, modern, by = 'points')
-
-parameters_types = colnames(parameters_modern)[-1]
-
-fossil = select(fossil, -points)
-modern = select(modern, -points)
-
-# Excluding unnecessary taxa. You can select them. 
-fossil = fossil |> 
-  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
-modern = modern |> 
-  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
 
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.
-recons = data.frame(depth)
-
-igarka_GMLevkovskaya = neotoma2::get_sites(sitename = 'Igarka Peat Exposure') |>
-  neotoma2::get_downloads() |>
-  neotoma2::samples() |>
-  select(age, units, value, variablename, depth) |>
-  pivot_wider(names_from = variablename,
-              values_from = value) |> 
-  remove_na() |> 
-  # turn all NA values to 0
-  mutate(across(where(is.numeric), ~replace_na(., 0)))
+recons = tibble(depth = ages$depth)
