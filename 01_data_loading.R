@@ -84,10 +84,10 @@ fossil = select(fossil, -points)
 modern = select(modern, -points)
 
 # Excluding unnecessary taxa. You can select them. 
-fossil = fossil |> 
-  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
-modern = modern |> 
-  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+# fossil = fossil |> 
+#   select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+# modern = modern |> 
+#   select(-`Menuanthes trifoliata`, -`Cyperaceae`)
 
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.
