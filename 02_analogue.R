@@ -19,7 +19,7 @@ source('R/plotting_functions.R')
 dat = join(modern, fossil)
 
 # For MAT data needs to be proportional
-modern_mat = dat$modern / 100 
+modern_mat = dat$modern / 100
 fossil_mat = dat$fossil / 100
 
 # 3. MAT transfer function ----

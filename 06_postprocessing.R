@@ -19,8 +19,8 @@ source('R/summary_functions.R')
 
 # 1. Data handling ----
 # write reconstructions into sheet
-writexl::write_xlsx(recons, paste0('output/reconstructed/', 'Igarka',
-                                   '_woody.xlsx'))
+#writexl::write_xlsx(recons, paste0('output/reconstructed/', 'Igarka',
+#                                    '_woody.xlsx'))
 # Converting to longer format 
 recon_plot = recons |> 
   pivot_longer(contains(c('mat', 'wa', 'wapls', 'rf')), names_to = 'type', 
