@@ -43,7 +43,7 @@ for (i in 1:length(parameters_types)){
   )
   
   # bootstrap cross-validation
-  cv_wapls = crossval(
+  cv_wapls = rioja::crossval(
     func_wapls,
     cv.method = 'bootstrap',
     verbose = T,
@@ -55,7 +55,7 @@ for (i in 1:length(parameters_types)){
   recon_wapls = predict(
     func_wapls,
     newdata = fossil,
-    sse = F,
+    sse = T,
     nboot = 100,
     match.data = T,
     verbose = T
@@ -63,7 +63,7 @@ for (i in 1:length(parameters_types)){
   
   # performance & summary writing 
   parameter_name = define_name(parameters_types, i) # parameter type in text
-  performance_cv = performance(cv_wapls) # write performance 
+  performance_cv = rioja::performance(cv_wapls) # write performance 
   
   model_settings = names(
     performance_cv$crossval[,1][which.min(
@@ -71,10 +71,13 @@ for (i in 1:length(parameters_types)){
   
   # pull fitted values: best parameters
   parameter1 = recon_wapls$fit[,model_settings]
+  # sse = recon_wapls$SEP.boot[,model_settings]
   
   # bind fitted values for one parameter with others
   wapls = cbind(wapls, parameter1)
+  # wapls = cbind(wapls, sse)
   colnames(wapls)[length(wapls)] = paste0(parameters_types[i], '.wapls')
+  # colnames(wapls)[length(wapls)] = paste0(parameters_types[i], '.wapls.sse')
   
   # here goes statistical significance assessment
   sig_wapls = randomTF(

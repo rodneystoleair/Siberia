@@ -216,5 +216,6 @@ rf = rf[,-1]
 recons = cbind(recons, rf)
 
 # write reconstructions into sheet
-writexl::write_xlsx(recons, paste0('output/reconstructed/', name,
-                                   '_woody.xlsx'))
+writexl::write_xlsx(recons, paste0('output/reconstructed/', name, '_',
+                                   param_type2,
+                                   '.xlsx'))

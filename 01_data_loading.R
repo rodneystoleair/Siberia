@@ -25,12 +25,22 @@ source('R/loading_functions.R')
 
 # Fossil data (prediction set)
 name = readline('Write the exact core name for a reconstruction: ')
-fossil = read_excel(paste0('data/fossil/fossil_', name, '.xlsx')) |>
-  gather(variable, value, -depth) |>
-  spread(depth, value) |>
-  transform(variable = as.numeric(variable)) |>
-  arrange(variable)
-depth = fossil$variable
+
+param_type = readline('Press 1 for climate, 2 for woody cover')
+if (param_type == 1){
+  param_type2 = 'climate'
+} else if (param_type == 2){
+  param_type2 = 'woody'
+} else {
+  cat('Wrong parameter type')
+}
+
+fossil = read_excel(paste0('data/fossil/fossil_', name, '.xlsx'))
+  # gather(variable, value, -depth) |>
+  # spread(depth, value) |>
+  # transform(variable = as.numeric(variable)) |>
+  # arrange(variable)
+depth = fossil$depth
 ages = read_excel(paste0('data/fossil/ages_', name, '.xlsx'), col_names = F) |> 
   pull()
 
@@ -66,28 +76,35 @@ cover = select(cover, -type1:-type2)
 
 ## Column names switch
 row.names(modern) = modern$points
-row.names(fossil) = fossil$variable
-colnames(fossil) = colnames(modern)
 
-# parameters_modern = semi_join(climate, modern, by = 'points') |>
-#   inner_join(cover) |>
-#  select(-km50, -km10, -km20, -km5)
-
-## Params join
-parameters_modern = semi_join(climate, modern, by = 'points') |>
-  inner_join(cover) |>
-  select(points, km50, km20, km10, km5)
+if (param_type2 == 'climate'){
+  parameters_modern = semi_join(climate, modern, by = 'points') |>
+    inner_join(cover) |>
+    select(-km50, -km10, -km20, -km5)
+} else if (param_type2 == 'woody'){
+  parameters_modern = semi_join(climate, modern, by = 'points') |>
+    inner_join(cover) |>
+    select(points, km50, km20, km10, km5)
+} else {
+  cat('Didnt find parameter type')
+}
 
 parameters_types = colnames(parameters_modern)[-1]
 
-fossil = select(fossil, -points)
 modern = select(modern, -points)
 
 # Excluding unnecessary taxa. You can select them. 
-# fossil = fossil |> 
-#   select(-`Menuanthes trifoliata`, -`Cyperaceae`)
-# modern = modern |> 
-#   select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+fossil = fossil |>
+  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+modern = modern |>
+  select(-`Menuanthes trifoliata`, -`Cyperaceae`)
+
+# Count percentages of each taxa for modern and fossil datasets
+modern = modern / rowSums(modern) * 100
+fossil = fossil / rowSums(fossil) * 100
+
+row.names(fossil) = depth
+fossil = select(fossil, -depth)
 
 # Data frame creation for final reconstructions. They will be bounded to each
 # other in the end of work.

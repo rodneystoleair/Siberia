@@ -44,7 +44,7 @@ for (i in 1:length(parameters_types)){
   )
   
   # bootstrap cross-validation
-  cv_wa = crossval(
+  cv_wa = rioja::crossval(
     func_wa,
     cv.method = 'bootstrap',
     verbose = T,
@@ -66,7 +66,7 @@ for (i in 1:length(parameters_types)){
   
   # performance & summary writing 
   parameter_name = define_name(parameters_types, i) # parameter type in text
-  performance_cv = performance(cv_wa) # write performance using rioja function
+  performance_cv = rioja::performance(cv_wa) # write performance using rioja function
   
   model_settings = names(
     performance_cv$crossval[,1][which.min(

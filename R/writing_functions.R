@@ -38,7 +38,7 @@ write_summary = function(cv, prediction, p) {
 # desc       : for package rioja data type 
 
 write_results_rioja = function(cv){
-  performance = performance(cv)
+  performance = rioja::performance(cv)
   type =
     names(
       performance[["crossval"]][,1][which.min(performance[["crossval"]][,1])]
